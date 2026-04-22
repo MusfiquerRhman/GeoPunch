@@ -4,7 +4,7 @@ import Link from 'next/link';
 import clsx from 'clsx';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { bookIcon, locationIcon, officeIcon } from '@/assets';
+import { bookIcon, structureIcon, officeIcon, attendanceIcon, checkIcons, logIcon, rankingIcon, adminIcon, userIcon, shieldIcon } from '@/assets';
 
 // Recursive component to render the navigation tree
 const NavTree = () => {
@@ -12,26 +12,71 @@ const NavTree = () => {
 
     const navData = [
         {
-            id: 1,
+            id: 'Library',
             label: 'Library',
             icon: bookIcon,
             link: '/library',
             children: [
                 {
-                    id: 2,
-                    label: 'Locations',
-                    icon: locationIcon,
-                    link: '/library/locations',
+                    id: 'Departments',
+                    label: 'Departments',
+                    icon: structureIcon,
+                    link: '/library/departments',
                 },
                 {
-                    id: 3,
+                    id: 'Designations',
+                    label: 'Designations',
+                    icon: rankingIcon,
+                    link: '/library/designations',
+                },
+                {
+                    id: 'Offices',
                     label: 'Offices',
                     icon: officeIcon,
                     link: '/library/offices',
                 },
             ],
         },
-        // Add more navigation items here
+        {
+            id: 'Attendance',
+            label: 'Attendance',
+            icon: attendanceIcon,
+            link: '/attendance',
+            children: [
+                {
+                    id: 'CheckIns',
+                    label: 'Check Ins',
+                    icon: checkIcons,
+                    link: '/attendance/check-in',
+                }, 
+                {
+                    id: 'History',
+                    label: 'History',
+                    icon: logIcon,
+                    link: '/attendance/logs',
+                }
+            ]
+        },
+        {
+            id: 'Admin',
+            label: 'Admin',
+            icon: adminIcon,
+            link: '/admin',
+            children: [
+                {
+                    id: 'UserManagement',
+                    label: 'User Management',
+                    icon: userIcon,
+                    link: '/admin/users',
+                },
+                {
+                    id: 'admins',
+                    label: 'Admins',
+                    icon: shieldIcon,
+                    link: '/admin/admins',
+                }
+            ]
+        }
     ];
 
     return (

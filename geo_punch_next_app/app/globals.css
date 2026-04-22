@@ -11,7 +11,7 @@
   --color-foreground: var(--foreground);
   --color-sidebar: var(--color-sidebar);
   --color-primary: var(--color-teal-600);
-  --color-secondary: var(--color-cyan-600);  
+  --color-secondary: #377DC9;  
 
 
   --font-sans: var(--font-geist-sans);
