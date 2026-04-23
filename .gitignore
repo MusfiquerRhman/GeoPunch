@@ -2,3 +2,4 @@ geo_punch_next_app/node_modules/
 geo_punch/node_modules/
 
 .env
+/generated/prisma

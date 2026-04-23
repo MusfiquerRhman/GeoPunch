@@ -20,8 +20,8 @@ const Accordion = ({items, label, icon, isLinkOpen}: AccordionProps) => {
 
     return (
         <div>
-            <Button onClick={() => setIsOpen(!isOpen)} 
-                variant="accordion"
+            <Button variant="accordion"
+                onClick={() => setIsOpen(!isOpen)} 
                 type="button" 
                 label={label} 
                 rightIcon={isOpen ? caretUpIcon : caretDownIcon} 

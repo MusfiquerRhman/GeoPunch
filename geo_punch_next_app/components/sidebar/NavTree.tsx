@@ -80,7 +80,7 @@ const NavTree = () => {
     ];
 
     return (
-        <React.Fragment>
+        <>
             {navData.map((item) => (
                 <Accordion
                     key={item.id}
@@ -93,7 +93,7 @@ const NavTree = () => {
                             href={child.link}
                             className={clsx(
                                 "py-3 px-4 cursor-pointer flex flex-1 gap-3 hover:bg-primary-accent flex-row z-50 text-[0.9rem]",
-                                pathname === child.link ? "bg-primary tracking-wide" : ""
+                                pathname === child.link ? "bg-secondary/20 tracking-wide" : ""
                             )}
                         >
                             <Image
@@ -108,7 +108,7 @@ const NavTree = () => {
                     )) || []}
                 />
             ))}
-        </React.Fragment>
+        </>
     );
 };
 
