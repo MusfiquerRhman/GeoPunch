@@ -1,110 +1,151 @@
 "use client";
 
-import Wrapper from "@/components/UI/Wrapper";
-import { createUser } from "./actions";
+import { Wrapper, FormField } from "@/components";
 import { useForm } from "react-hook-form";
 import { userSchema } from "./schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 
 export default function Home() {
-  const form = useForm({
-    resolver: zodResolver(userSchema),
-  });
-
-  const [departments, setDepartments] = useState([]);
-
-  useEffect(() => {
-    fetch("/api/library/department").then((res) => res.json()).then((data) => {
-        setDepartments(data);
-      })
-      .catch((err) => console.error(err));
-  }, []);
-
-  const [designations, setDesignations] = useState([]);
-
-  useEffect(() => {
-  fetch("/api/library/designation").then((res) => res.json()).then((data) => {
-      setDesignations(data);
-    })
-    .catch((err) => console.error(err));
-  }, []);
-
-  useEffect(() => {
-    console.log("Departments updated:", departments);
-  }, [departments]);
-  
-  const onSubmit = async (data: any) => {
-    const formData = new FormData();
-
-    Object.entries(data).forEach(([key, value]) => {
-      formData.append(key, String(value));
+    const form = useForm({
+        resolver: zodResolver(userSchema),
     });
 
-    const res = await createUser(formData);
+    const { register, handleSubmit, formState: { errors } } = form;
 
-    console.log(res); // handle success/error here
-  };
+    const [departments, setDepartments] = useState([]);
 
-  return (
-    <Wrapper heading="User Management">
-      <form onSubmit={form.handleSubmit(onSubmit)}
-        className="flex flex-row flex-wrap gap-4 w-full max-w-[550]"
-      >
-        <div className="flex w-full">
-          <label className="font-medium flex-1">ID Card No</label>
-          <input placeholder="Id Card Number" className="border-2 border-primary w-[250] flex-3" {...form.register("id_card_no")} />
-        </div>
-        <div className="flex w-full">
-          <label className="font-medium flex-1">Name</label>
-          <input placeholder="Name" className="border-2 border-primary w-[250] flex-3" {...form.register("name")} />
-        </div>
-        <div className="flex w-full">
-          <label className="font-medium flex-1">Department ID</label>
-            <select defaultValue={''} {...form.register("department_id")} className="border-2 border-primary w-[250] flex-3">
-              <option disabled value="">Select Department</option>
-              {departments.map((d: any) => (
-                <option key={d.id} value={d.id}>
-                  {d.department_name}
-                </option>
-            ))}
-          </select>
-        </div>
-        <div className="flex w-full">
-          <label className="font-medium flex-1">Designation ID</label>
-          <select defaultValue={''} {...form.register("designation_id")} className="border-2 border-primary w-[250] flex-3">
-            <option disabled value="">Select Designation</option>
-            {designations.map((d: any) => (
-              <option key={d.id} value={d.id}>
-                {d.designation_name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="flex w-full">
-          <label className="font-medium flex-1">Phone No</label>
-          <input placeholder="Phone Number" className="border-2 border-primary w-[250] flex-3" {...form.register("phone_no")} />
-        </div>
-        <div className="flex w-full">
-          <label className="font-medium flex-1">Email</label>
-          <input placeholder="Email" className="border-2 border-primary w-[250] flex-3" {...form.register("email")} />
-        </div>
-        <div className="flex w-full">
-          <label className="font-medium flex-1">Password</label>
-          <input placeholder="Password" className="border-2 border-primary w-[250] flex-3" type="password" {...form.register("password")} />
-        </div>
-        <div className="flex w-full justify-start">
-          <label className="font-medium w-1/4">Is Admin</label>
-          <input
-            type="checkbox"
-            {...form.register("isAdmin")}
-            className="w-3/4"
-            onChange={(e) => form.setValue("isAdmin", e.target.checked)}
-          />
-        </div>
+    useEffect(() => {
+        fetch("/api/library/department").then((res) => res.json()).then((data) => {
+        setDepartments(data);
+        })
+        .catch((err) => console.error(err));
+    }, []);
 
-        <button type="submit">Submit</button>
-      </form>
-    </Wrapper>
-  );
+    const [designations, setDesignations] = useState([]);
+
+    useEffect(() => {
+        fetch("/api/library/designation").then((res) => res.json()).then((data) => {
+            setDesignations(data);
+        })
+        .catch((err) => console.error(err));
+    }, []);
+
+    useEffect(() => {
+        console.log('error', errors);
+    }, [errors]);
+
+    const onSubmit = async (data: any) => {
+        console.log("Submitting form with data"); // Debug log
+        const formData = new FormData();
+
+        console.log(data);
+
+        Object.entries(data).forEach(([key, value]) => {
+            formData.append(key, String(value));
+        });
+
+        const res = await fetch("/api/users", {
+            method: "POST",
+            body: JSON.stringify(data),
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+
+
+        console.log(res); // handle success/error here
+    };
+
+    return (
+        <Wrapper heading="User Management">
+            <form onSubmit={handleSubmit(onSubmit)}
+                className="flex flex-row flex-wrap gap-4 w-full max-w-[550]"
+            >
+                <FormField
+                    label="Id Card No"
+                    name="id_card_no"
+                    placeholder="Id Card No"
+                    register={register}
+                    errors={form.formState.errors.id_card_no}
+                />
+                <FormField
+                    label="Name"
+                    name="name"
+                    placeholder="Name"
+                    register={register}
+                    errors={form.formState.errors.name}
+                />
+                <FormField
+                    label="Phone No"
+                    name="phone_no"
+                    placeholder="Phone Number"
+                    register={register}
+                    errors={form.formState.errors.phone_no}
+                />
+                <FormField
+                    label="Email"
+                    name="email"
+                    placeholder="Email"
+                    register={register}
+                    errors={form.formState.errors.email}
+                />
+                <FormField
+                    label="Password"
+                    name="password"
+                    placeholder="Password"
+                    type="password"
+                    register={register}
+                    errors={form.formState.errors.password}
+                />
+                <div className="flex w-full">
+                    <label className="font-medium flex-1">Department ID</label>
+                    <select defaultValue={''} {...register("department_id")} 
+                        className="rounded-md px-2 py-1 border-2 border-primary w-[250] flex-3"
+                    >
+                        <option disabled value="">Select Department</option>
+                        {departments.map((d: any) => (
+                            <option key={d.id} value={d.id}>
+                                {d.department_name}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <div className="flex w-full">
+                    <label className="font-medium flex-1">Designation ID</label>
+                    <select defaultValue={''} {...register("designation_id")} 
+                        className="rounded-md px-2 py-1 border-2 border-primary w-[250] flex-3"
+                    >
+                        <option disabled value="">Select Designation</option>
+                        {designations.map((d: any) => (
+                            <option key={d.id} value={d.id}>
+                                {d.designations}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+               <div className="flex w-full gap-4 items-center">
+                    <label className="font-medium w-1/5 m-1">Active</label>
+                    <input
+                        type='checkbox'
+                        className="border-2 border-primary w-5 h-5 px-2 py-1 rounded-md"
+                        {...register("isActive", { setValueAs: (v) => v === true || v === "on", })}
+                    />
+                </div>
+                <div className="flex w-full gap-4 items-center">
+                    <label className="font-medium w-1/5 m-1">Admin</label>
+                    <input
+                        type='checkbox'
+                        className="border-2 border-primary w-5 h-5 px-2 py-1 rounded-md"
+                        {...register("isAdmin", { setValueAs: (v) => v === true || v === "on", })}
+                    />
+                </div>
+                <button type="submit"
+                    className="bg-primary w-full p-2 rounded-md text-white cursor-pointer"
+                >
+                    Submit
+                </button>
+            </form>
+        </Wrapper>
+    );
 }

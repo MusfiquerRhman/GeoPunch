@@ -41,6 +41,7 @@ model employees {
   is_active         Boolean?            @default(true)
   password          String?
   hashed_password   String?
+  is_admin          Boolean?            @default(false)
   attendance_record attendance_record[]
   departments       departments?        @relation(fields: [department_id], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "employee_table_department_id_fkey")
   designations      designations?       @relation(fields: [designation_id], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "employee_table_designation_id_fkey")

@@ -8,6 +8,7 @@ type FormFieldProps<T extends FieldValues> = {
   register: UseFormRegister<T>;
   type?: string;
   placeholder?: string;
+  errors?: any;
 };
 
 const FormField = <T extends FieldValues>({
@@ -16,17 +17,25 @@ const FormField = <T extends FieldValues>({
   register,
   type = "text",
   placeholder,
+  errors
 }: FormFieldProps<T>) => {
+  console.log('FormField errors:', errors); // Debug log for errors
+
   return (
-    <div className="flex w-full">
-      <label className="font-medium flex-1">{label}</label>
-      <input
-        type={type}
-        placeholder={placeholder}
-        className="border-2 border-primary w-[250] flex-3"
-        {...register(name)}
-      />
-    </div>
+    <>
+      <div className="flex w-full">
+        <label className="font-medium flex-1">{label}</label>
+        <div className="flex-3">
+          <input
+            type={type}
+            placeholder={placeholder}
+            className={`border-2 border-primary w-full px-2 py-1 rounded-md ${errors ? 'border-red-500' : ''}`}
+            {...register(name)}
+          />
+          {errors && <p className="text-red-500 text-sm">{errors.message}</p>}
+        </div>
+      </div>
+    </>
   );
 }
 

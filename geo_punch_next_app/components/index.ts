@@ -16,3 +16,4 @@ export { default as GenericTableRow } from "./table/GenericTableRow";
 export { default as Table } from "./table/Table";
 export { default as TableHeader } from "./table/TableHeader";
 export { default as FormField } from "./UI/FormField";
+export { default as Wrapper } from "./UI/Wrapper";
