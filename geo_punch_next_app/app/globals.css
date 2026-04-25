@@ -30,3 +30,61 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+
+@layer utilities {
+  .emboss {
+    background: var(--color-background);
+    box-shadow: -3px -2px 4px 0 var(--color-white), 3px 3px 4px 0px var(--color-emboss);
+  }
+
+  .emboss-press {
+    box-shadow: inset 2px 2px 3px 0 var(--color-emboss), inset -2px -2px 3px 0 var(--color-white);
+    transition: all 1s linear;
+  }
+
+  .emboss-inner {
+    background: var(--color-background);
+    box-shadow: inset 2px 2px 3px 0 var(--color-emboss), inset -3px -3px 4px 0 var(--color-white);
+  }
+
+  .login-gradient {
+    background: linear-gradient(to right, #001e3a, #000000, #001e3a);
+  }
+
+  .loader {
+    width: 45px;
+    aspect-ratio: .75;
+    --c: no-repeat linear-gradient(#000 0 0);
+    background: 
+      var(--c) 0%   50%,
+      var(--c) 50%  50%,
+      var(--c) 100% 50%;
+    background-size: 20% 50%;
+    animation: l6 1s infinite linear;
+  }
+
+  @keyframes l6 {
+    20% {background-position: 0% 0%  ,50% 50% ,100% 50% }
+    40% {background-position: 0% 100%,50% 0%  ,100% 50% }
+    60% {background-position: 0% 50% ,50% 100%,100% 0%  }
+    80% {background-position: 0% 50% ,50% 50% ,100% 100%}
+  }
+
+  .loader-text {
+    width: fit-content;
+    font-weight: bold;
+    font-family: sans-serif;
+    font-size: 20px;
+    padding-bottom: 8px;
+    background: linear-gradient(currentColor 0 0) 0 100%/0% 3px no-repeat;
+    animation: l2 2s linear infinite;
+  }
+  
+  .loader-text:before {
+    content:"Loading"
+  }
+
+  @keyframes l2 {to{background-size: 100% 3px}}
+}
+
