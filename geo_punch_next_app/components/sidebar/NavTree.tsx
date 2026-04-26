@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import { Accordion } from '@/components';
 import Link from 'next/link';
@@ -143,4 +145,4 @@ const NavTree = () => {
     );
 };
 
-export default React.memo(NavTree);
+export default NavTree;

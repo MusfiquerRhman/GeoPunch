@@ -1,3 +1,5 @@
+"use client";
+
 import { motion } from 'framer-motion';
 import clsx from 'clsx';
 import React from 'react';
@@ -47,4 +49,4 @@ const Burger = ({ isOpen, setIsOpen }: BurgerProps) => {
     )
 }
 
-export default React.memo(Burger) as typeof Burger;
+export default Burger;

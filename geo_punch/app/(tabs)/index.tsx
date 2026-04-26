@@ -7,8 +7,15 @@ import * as MediaLibrary from 'expo-media-library';
 import { useEffect, useState } from 'react';
 import { Button, StyleSheet, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import { Ionicons } from "@expo/vector-icons";
+import * as SecureStore from "expo-secure-store";
+import { API_URL } from '@/constants/API_URL';
+import { useQueryClient } from "@tanstack/react-query";
+
 
 export default function HomeScreen() {
+  const queryClient = useQueryClient();
+
   const [location, setLocation] = useState<Location.LocationObject | undefined>();
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [addrress, setAddrress] = useState<Location.LocationGeocodedAddress[]>([]);
@@ -16,6 +23,40 @@ export default function HomeScreen() {
   const [cameraRef, setCameraRef] = useState<any>(null);
   const [permission, requestPermission] = useCameraPermissions();
   const [photoUri, setPhotoUri] = useState<string | null>(null);
+  
+  const submitAttendance = async () => {
+    const token = await SecureStore.getItemAsync("token");
+
+    const formData = new FormData();
+
+    formData.append("photo", {
+      uri: photoUri,
+      name: "selfie.jpg",
+      type: "image/jpeg",
+    } as any);
+
+    formData.append("latitude", String(location?.coords.latitude ?? ""));
+    formData.append("longitude", String(location?.coords.longitude ?? ""));
+
+    await fetch(`${API_URL}/geo_punch/record`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    }).then(res => {
+      if (res.ok) {
+        alert("Attendance recorded successfully!");
+        setPhotoUri(null);
+        queryClient.invalidateQueries({ queryKey: ["attendance"] });
+      } else {
+        alert("Failed to record attendance");
+      }
+    }).catch(err => {
+      console.error("Error submitting attendance:", err);
+      alert("An error occurred while submitting attendance");
+    });
+  }
 
   async function getPosition() {
     try {
@@ -128,21 +169,39 @@ export default function HomeScreen() {
       {showCamera && (
         <View style={{ flex: 1, height: 400 }}>
           <CameraView
-            style={{ flex: 1 }}
+            style={{ flex: 1, justifyContent: 'flex-end', alignItems: 'center' }}
             facing="front"
             ref={(ref) => setCameraRef(ref)}
           >
             <View
               style={{
-                flex: 1,
                 justifyContent: 'flex-end',
                 alignItems: 'center',
                 marginBottom: 40,
               }}
             >
             </View>
-            <Button title="Capture Selfie" onPress={takeSelfie} />
-            <Button title="Cancel" onPress={() => setShowCamera(false)} />
+            <View style={{ 
+              position: 'absolute', 
+              bottom: 20, 
+              right: 20, 
+              display: 'flex', 
+              flexDirection: 'row', 
+              gap: 20,
+              width: '90%',
+              justifyContent: 'center',
+            }}>
+              <View style={styles.camera_container}>
+                <TouchableOpacity style={styles.camera_button} onPress={() => setShowCamera(false)}>
+                  <Ionicons name="close" size={20} color="#000" />
+                </TouchableOpacity>
+              </View>
+              <View style={styles.camera_container}>
+                <TouchableOpacity style={styles.camera_button} onPress={takeSelfie}>
+                  <Ionicons name="camera" size={20} color="#000" />
+                </TouchableOpacity>
+              </View>
+            </View>
           </CameraView>
         </View>
       )}
@@ -190,9 +249,23 @@ export default function HomeScreen() {
         )}
       </View>
       <View>
-        <ThemedText>Your Approximate Location: {addrress.map((addr) => `${addr.name}, ${addr.city}, ${addr.country}`).join('\n')}</ThemedText>
+        <ThemedText>Approximate Location: {addrress.map((addr) => `${addr.name}, ${addr.city}, ${addr.country}`).join('\n')}</ThemedText>
       </View>
-
+        <TouchableOpacity
+          onPress={submitAttendance}
+          style={{
+            marginTop: 10,
+            width: '100%',
+            backgroundColor: '#007AFF',
+            paddingVertical: 12,
+            borderRadius: 10,
+            alignItems: 'center',
+          }}
+        >
+          <ThemedText style={{ color: '#fff', fontWeight: '600' }}>
+            Submit Attendance
+          </ThemedText>
+        </TouchableOpacity>
     </ParallaxScrollView>
   );
 }
@@ -227,5 +300,22 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  camera_container: {
+    justifyContent: "center",   // vertical center
+    alignItems: "center", 
+  },
+  camera_button: {
+    width: 40,
+    height: 40,
+    borderRadius: 35,           // perfect circle
+    backgroundColor: "#fff",    // white background
+    justifyContent: "center",
+    alignItems: "center",
+      // nice shadow (optional but 🔥)
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 5,
   },
 });

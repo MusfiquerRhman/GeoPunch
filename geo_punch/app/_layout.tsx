@@ -4,6 +4,9 @@ import { DarkTheme, DefaultTheme } from "@react-navigation/native";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ActivityIndicator, View } from "react-native";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient();
 
 function RootLayoutNav() {
   const { token, loading } = useAuth();
@@ -35,7 +38,9 @@ function RootLayoutNav() {
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <RootLayoutNav />
+      <QueryClientProvider client={queryClient}>
+        <RootLayoutNav />
+      </QueryClientProvider>
     </AuthProvider>
   );
 }

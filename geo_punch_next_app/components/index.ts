@@ -11,9 +11,7 @@ export { default as TableCell } from "./UI/TableCell"
 export { default as CheckBox } from "./UI/CheckBox";
 export { default as Loader } from "./UI/Loader";
 
-export { default as TableFooter } from "./table/TableFooter";
-export { default as GenericTableRow } from "./table/GenericTableRow";
-export { default as Table } from "./table/Table";
-export { default as TableHeader } from "./table/TableHeader";
 export { default as FormField } from "./UI/FormField";
 export { default as Wrapper } from "./UI/Wrapper";
+
+export { default as punchCard } from "./punchCard";

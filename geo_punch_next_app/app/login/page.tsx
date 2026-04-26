@@ -7,9 +7,22 @@ import { banner } from "@/assets";
 import Image from "next/image";
 import router from "next/dist/shared/lib/router/router";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const login = () => {
+    const [token, setToken] = useState<string | undefined>();
+    
+    useEffect(() => {
+        const local_token = localStorage.getItem("token");
+
+        console.log("Token on login page:", local_token);
+        if (local_token) {
+            setToken(local_token);
+            router.push("/"); // Redirect to home page if token exists
+        }
+
+    }, []);
+
     const router = useRouter();
 
     const [error, seterror] = useState('')
@@ -37,7 +50,11 @@ const login = () => {
         })
         .then(async (res) => {
             if (res.ok) {
-                console.log(res);
+                // router.push("/"); // Redirect to home page on successful login
+                const token = await res.json();
+                localStorage.setItem("token", token);
+                setToken(token);
+                router.push("/"); // Redirect to home page on successful login
             } else {
                 const err = await res.json();
                 console.error(err);

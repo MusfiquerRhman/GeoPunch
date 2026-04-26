@@ -39,3 +39,6 @@ select * from DEPARTMENTS;
 alter table EMPLOYEES add constraint unique_email_per_user unique(email);
 alter table EMPLOYEES add constraint unique_ID_CARD_NO_per_user unique(id_card_no);
 
+select * from ATTENDANCE_RECORD;
+
+alter table ATTENDANCE_RECORD add column status int default 1;

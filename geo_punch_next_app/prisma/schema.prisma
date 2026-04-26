@@ -14,7 +14,7 @@ model attendance_record {
   longitude    Float
   selfie_url   String
   submitted_at DateTime?  @default(now()) @db.Timestamp(6)
-  status       Boolean?   @default(false)
+  status       Int?       @default(1)
   employees    employees? @relation(fields: [employee_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
 }
 

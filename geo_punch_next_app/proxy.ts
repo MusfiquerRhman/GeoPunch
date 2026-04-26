@@ -12,7 +12,8 @@ export function proxy(req: NextRequest) {
     pathname.startsWith("/images") ||  // if you use public/images
     pathname.startsWith("/login") ||
     pathname.startsWith("/register") ||
-    pathname.startsWith("/api/auth")
+    pathname.startsWith("/api/auth") ||
+    pathname.startsWith("/uploads") // allow access to uploaded images
   ) {
     return NextResponse.next();
   }

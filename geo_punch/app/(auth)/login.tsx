@@ -1,9 +1,10 @@
-import { View, TextInput, Button, StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity } from "react-native";
+import { View, TextInput, Button, StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity, TouchableWithoutFeedback, Keyboard, ScrollView } from "react-native";
 import { useAuth } from "../context/AuthContext";
 import ParallaxScrollView from "@/components/parallax-scroll-view";
 import { Image } from "expo-image";
 import { ThemedText } from "@/components/themed-text";
 import { useState } from "react";
+import { API_URL } from "@/constants/API_URL";
 
 export default function Login() {
     const { login } = useAuth();
@@ -12,67 +13,74 @@ export default function Login() {
     const [password, setPassword] = useState("");
 
     const handleLogin = async () => {
-        const res = await fetch("http://your-api.com/api/auth/login", {
+        console.log("Attempting login with ID Card No:", idCard);
+
+        const res = await fetch(`${API_URL}/auth/geo_punch/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                email: "test@mail.com",
-                password: "123456",
+                id_card_no: idCard,
+                password: password,
             }),
         });
+
+        console.log("Login response status:", res.status);
 
         const data = await res.json();
 
         if (res.ok) {
-        await login(data.token); // 🔥 triggers route switch
+          await login(data.token); // 🔥 triggers route switch
+        } else {
+          console.error("Login failed:", data.error);
         }
     };
 
-return (
-    <View style={styles.container}>
-        <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : undefined}
-            style={styles.inner}
+  return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      {/* dismiss keyboard on tap */}
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
         >
-            {/* CARD */}
-            <View style={styles.card}>
-            
-            {/* LOGO */}
+          <View style={styles.card}>
             <Image
-                source={require("@/assets/images/Banner.jpeg")} // put your logo here
-                style={styles.logo}
-                resizeMode="contain"
+              source={require("@/assets/images/Banner.jpeg")}
+              style={styles.logo}
+              resizeMode="contain"
             />
 
-            {/* TITLE */}
             <ThemedText style={styles.title}>Login to Your Account</ThemedText>
 
-            {/* ID CARD */}
             <ThemedText style={styles.label}>Id Card No</ThemedText>
             <TextInput
-                value={idCard}
-                onChangeText={setIdCard}
-                placeholder="Enter your id card no"
-                style={styles.input}
+              value={idCard}
+              onChangeText={setIdCard}
+              placeholder="Enter your id card no"
+              style={styles.input}
+              returnKeyType="next"
             />
 
-          {/* PASSWORD */}
             <ThemedText style={styles.label}>Password</ThemedText>
             <TextInput
-                value={password}
-                onChangeText={setPassword}
-                placeholder="Enter your password"
-                secureTextEntry
-                style={styles.input}
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Enter your password"
+              secureTextEntry
+              style={styles.input}
+              returnKeyType="done"
             />
 
-          {/* BUTTON */}
-          <TouchableOpacity style={styles.button} onPress={handleLogin}>
-                <ThemedText style={styles.buttonText}>Login</ThemedText>
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
-    </View>
+            <TouchableOpacity style={styles.button} onPress={handleLogin}>
+              <ThemedText style={styles.buttonText}>Login</ThemedText>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -103,8 +111,8 @@ const styles = StyleSheet.create({
   },
 
   logo: {
-    width: 180,
-    height: 60,
+    width: 300,
+    height: 150,
     alignSelf: "center",
     marginBottom: 10,
   },

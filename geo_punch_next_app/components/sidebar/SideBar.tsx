@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import React, { useState } from 'react';
 import NavTree from './NavTree';
@@ -50,4 +50,4 @@ const SideBar = ({children}: {children: React.ReactNode}) => {
     )
 }
 
-export default React.memo(SideBar) as typeof SideBar;
+export default SideBar;
