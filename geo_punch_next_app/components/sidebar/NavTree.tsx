@@ -4,13 +4,19 @@ import Link from 'next/link';
 import clsx from 'clsx';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { bookIcon, structureIcon, officeIcon, attendanceIcon, checkIcons, logIcon, rankingIcon, adminIcon, userIcon, shieldIcon } from '@/assets';
+import { bookIcon, structureIcon, officeIcon, dashboardIcon, attendanceIcon, checkIcons, logIcon, rankingIcon, adminIcon, userIcon, shieldIcon } from '@/assets';
 
 // Recursive component to render the navigation tree
 const NavTree = () => {
     const pathname = usePathname();
 
     const navData = [
+        {
+            id: 'Dashboard',
+            label: 'Dashboard',
+            icon: dashboardIcon,
+            link: '/dashboard',
+        },
         {
             id: 'Library',
             label: 'Library',
@@ -79,6 +85,24 @@ const NavTree = () => {
         }
     ];
 
+    const logout = async () => {
+        // Implementation for logout functionality
+         const res = await fetch("/api/auth/logout", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+
+        if(res.ok) {
+            // Redirect to login page or show a success message
+            window.location.href = "/login";
+        } else {
+            // Handle error case
+            console.error("Logout failed");
+        }
+    };
+
     return (
         <>
             {navData.map((item) => (
@@ -108,6 +132,11 @@ const NavTree = () => {
                     )) || []}
                 />
             ))}
+            <button className='absolute bottom-8 bg-red-500 text-white w-[90%] left-1/2 -translate-x-1/2 py-2 rounded-md cursor-pointer'
+                onClick={() => logout()}
+            >
+                logout
+            </button>
         </>
     );
 };

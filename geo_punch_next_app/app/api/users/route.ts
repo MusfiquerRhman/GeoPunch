@@ -1,10 +1,17 @@
 import { db } from "@/utils/prisma";
+import bcrypt from "bcryptjs";
 
 export async function GET(): Promise<Response> {
   const data = await db.employees.findMany({
     include: {
       departments: true,
       designations: true,
+      id_card_no: true,
+      name: true,
+      phone_no: true,
+      is_active: true,
+      email: true,
+      is_admin: true,
     },
   }).then((result) => { 
     console.log('Fetched users successfully:', result);
@@ -36,6 +43,7 @@ export async function POST(request: Request): Promise<Response> {
       is_active: data.isActive,
       email: data.email,
       password: data.password,
+      hashed_password:  await bcrypt.hash(data.password, 10),
       is_admin: data.isAdmin,
     },
   }).then((result) => {

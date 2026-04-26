@@ -1,38 +1,82 @@
-// app/api/auth/login/route.ts
-
-import { NextResponse } from "next/server";
-import bcrypt from "bcrypt";
+import { db } from "@/utils/prisma";
 import { signToken } from "../../_utils/jwt";
-
-// fake DB for example
-const users = [
-  { id: 1, email: "admin@test.com", password: "$2b$10$hashed..." },
-];
+import { NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
 
 export async function POST(req: Request) {
-  const { email, password } = await req.json();
+  const { id_card_no, password } = await req.json();
 
-  const user = users.find((u) => u.email === email);
-  if (!user) {
-    return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
-  }
-
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) {
-    return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
-  }
-
-  const token = signToken({ userId: user.id });
-
-  const res = NextResponse.json({ success: true });
-
-  // 🔥 store in HTTP-only cookie
-  res.cookies.set("token", token, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "strict",
-    path: "/",
+  console.log("Login attempt:", { id_card_no, password });
+  // TODO: validate user from DB
+  const user = await db.employees.findUnique({
+    where: { id_card_no },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone_no: true,
+      is_active: true,
+      is_admin: true,
+      id_card_no: true,
+      password: true,
+      hashed_password: true,
+      departments: {
+        select: {
+          id: true,
+          department_name: true,
+        },
+      },
+      designations: {
+        select: {
+          id: true,
+          designations: true,
+        },
+      }
+    },
   });
 
-  return res;
+  if (!user) {
+    return NextResponse.json({ error: "Invalid ID Card No or password" }, { status: 401 });
+  }
+
+  if (user.password !== password) {
+    return NextResponse.json({ error: "Invalid ID Card No or password" }, { status: 401 });
+  }
+
+  if(!user.is_admin){
+    return NextResponse.json({ error: "You do not have permission to access this site." }, { status: 403 });
+  }
+
+  if(!user.is_active){
+    return NextResponse.json({ error: "Account is inactive. Please contact admin." }, { status: 403 });
+  }
+
+  // will do it next, after making sure the api is working
+  // const isValid = await bcrypt.compare(password, user.hashed_password ?? '');
+
+  // if (!isValid) {
+  //   return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
+  // }
+
+  const token = await signToken({
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    isAdmin: user.is_admin,
+    id_card_no: user.id_card_no,
+    phone_no: user.phone_no,
+    departments: user.departments?.department_name,
+    designations: user.designations?.designations,
+  });
+
+  const response = NextResponse.json({ token });
+
+  response.cookies.set("token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production", // important!
+    path: "/",
+    maxAge: 60 * 60 * 24 * 7,
+  });
+
+  return response;
 }

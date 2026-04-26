@@ -32,12 +32,12 @@ model designations {
 
 model employees {
   id                String              @id(map: "employee_table_pkey") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  id_card_no        String?             @db.VarChar(50)
+  id_card_no        String?             @unique(map: "unique_id_card_no_per_user") @db.VarChar(50)
   name              String              @db.VarChar(75)
   department_id     String?             @db.Uuid
   designation_id    String?             @db.Uuid
   phone_no          String?             @db.VarChar(20)
-  email             String?             @db.VarChar(50)
+  email             String?             @unique(map: "unique_email_per_user") @db.VarChar(50)
   is_active         Boolean?            @default(true)
   password          String?
   hashed_password   String?

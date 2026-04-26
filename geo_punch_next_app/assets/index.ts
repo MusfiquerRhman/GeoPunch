@@ -20,3 +20,4 @@ export { default as viewIcon } from './icons/view.png';
 export { default as hideIcon } from './icons/hide.png';
 export { default as leftArrowIcon } from './icons/left-arrow.png';
 export { default as rightArrowIcon } from './icons/right-arrow.png';
+export { default as dashboardIcon } from './icons/dashboard.png';

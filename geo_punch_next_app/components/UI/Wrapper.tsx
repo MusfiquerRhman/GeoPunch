@@ -5,7 +5,7 @@ interface WrapperProps {
 
 const Wrapper = ({ children, heading }: WrapperProps) => {
     return (
-        <div className="w-full h-full flex m-4 flex-col">
+        <div className="w-[calc(100%-2rem)] h-full flex m-4 flex-col">
             {heading && <h1 className="text-3xl font-semibold mb-4 mt-6">{heading}</h1>}
             {children}
         </div>
