@@ -132,11 +132,13 @@ const NavTree = () => {
                     )) || []}
                 />
             ))}
-            <button className='absolute bottom-8 bg-red-500 text-white w-[90%] left-1/2 -translate-x-1/2 py-2 rounded-md cursor-pointer'
-                onClick={() => logout()}
-            >
-                logout
-            </button>
+            <div className='absolute bottom-8 px-2 right-0 w-full'>
+                <button className=' bg-red-500 text-white w-[90%] py-2 rounded-md cursor-pointer'
+                    onClick={() => logout()}
+                >
+                    logout
+                </button>
+            </div>
         </>
     );
 };

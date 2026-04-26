@@ -24,8 +24,6 @@ const login = () => {
         console.log("Submitting form with data"); // Debug log
         const formData = new FormData();
 
-        console.log(data);
-
         Object.entries(data).forEach(([key, value]) => {
             formData.append(key, String(value));
         });
@@ -39,7 +37,7 @@ const login = () => {
         })
         .then(async (res) => {
             if (res.ok) {
-                router.push("/dashboard"); 
+                console.log(res);
             } else {
                 const err = await res.json();
                 console.error(err);

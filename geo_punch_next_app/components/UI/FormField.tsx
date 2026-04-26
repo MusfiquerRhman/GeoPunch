@@ -19,7 +19,6 @@ const FormField = <T extends FieldValues>({
   placeholder,
   errors
 }: FormFieldProps<T>) => {
-  console.log('FormField errors:', errors); // Debug log for errors
 
   return (
     <>

@@ -1,5 +1,5 @@
 import { db } from "@/utils/prisma";
-import { signToken } from "../../_utils/jwt";
+import { signToken } from "../../../_utils/jwt";
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 
@@ -42,10 +42,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid ID Card No or password" }, { status: 401 });
   }
 
-  if(!user.is_admin){
-    return NextResponse.json({ error: "You do not have permission to access this site." }, { status: 403 });
-  }
-
   if(!user.is_active){
     return NextResponse.json({ error: "Account is inactive. Please contact admin." }, { status: 403 });
   }
@@ -68,7 +64,16 @@ export async function POST(req: Request) {
     designations: user.designations?.designations,
   });
 
-  const response = NextResponse.json({ token });
+  const response = NextResponse.json({ token, user: {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    isAdmin: user.is_admin,
+    id_card_no: user.id_card_no,
+    phone_no: user.phone_no,
+    departments: user.departments?.department_name,
+    designations: user.designations?.designations,
+  }});
 
   response.cookies.set("token", token, {
     httpOnly: true,

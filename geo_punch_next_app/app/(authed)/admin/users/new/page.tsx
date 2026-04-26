@@ -11,6 +11,8 @@ export default function NewUsers() {
         resolver: zodResolver(userSchema),
     });
 
+    const [message, setMessage] = useState('')
+
     const { register, handleSubmit, formState: { errors } } = form;
 
     const [departments, setDepartments] = useState([]);
@@ -31,15 +33,8 @@ export default function NewUsers() {
         .catch((err) => console.error(err));
     }, []);
 
-    useEffect(() => {
-        console.log('error', errors);
-    }, [errors]);
-
     const onSubmit = async (data: any) => {
-        console.log("Submitting form with data"); // Debug log
         const formData = new FormData();
-
-        console.log(data);
 
         Object.entries(data).forEach(([key, value]) => {
             formData.append(key, String(value));
@@ -53,12 +48,18 @@ export default function NewUsers() {
             },
         });
 
-
-        console.log(res); // handle success/error here
+        if(res.ok) {
+            setMessage("User created successfully");
+        } else {
+            setMessage("An error occurred");
+        }
     };
 
     return (
         <Wrapper heading="User Management">
+            {message && <p className="w-full max-w-[550] text-green-500 border border-green-500 p-2 bg-green-50 rounded-md mb-4">
+                {message}
+            </p>}
             <form onSubmit={handleSubmit(onSubmit)}
                 className="flex flex-row flex-wrap gap-4 w-full max-w-[550]"
             >

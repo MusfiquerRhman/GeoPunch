@@ -34,5 +34,8 @@ ALTER TABLE EMPLOYEES ADD COLUMN HASHED_PASSWORD TEXT;
 
 SELECT * FROM EMPLOYEES;
 
-select * from DESIGNATIONS;
+select * from DEPARTMENTS;
+
+alter table EMPLOYEES add constraint unique_email_per_user unique(email);
+alter table EMPLOYEES add constraint unique_ID_CARD_NO_per_user unique(id_card_no);
 

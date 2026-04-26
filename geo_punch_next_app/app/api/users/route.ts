@@ -3,9 +3,20 @@ import bcrypt from "bcryptjs";
 
 export async function GET(): Promise<Response> {
   const data = await db.employees.findMany({
-    include: {
-      departments: true,
-      designations: true,
+    select: {
+      id: true,
+      departments: {
+        select: {
+          id: true,
+          department_name: true,
+        }
+      },
+      designations: {
+        select: {
+          id: true,
+          designations: true,
+        }
+      },
       id_card_no: true,
       name: true,
       phone_no: true,
@@ -13,20 +24,25 @@ export async function GET(): Promise<Response> {
       email: true,
       is_admin: true,
     },
-  }).then((result) => { 
-    console.log('Fetched users successfully:', result);
-    return result;
-  }).catch((error) => {
-    console.error('Error fetching users:', error);
-    throw error;
   });
 
-  return Response.json({ users: data });
+  const users = data.map((user) => ({
+    id: user.id,
+    id_card_no: user.id_card_no,
+    name: user.name,
+    phone_no: user.phone_no,
+    is_active: user.is_active,
+    email: user.email,
+    is_admin: user.is_admin,
+    department: user.departments?.department_name ?? null,
+    designation: user.designations?.designations ?? null,
+  }));
+
+  return Response.json({ users });
 }
 
 export async function POST(request: Request): Promise<Response> {
   const data = await request.json();
-  console.log('Received data:', data); // Debug log for incoming data
 
   // Here you would typically handle the data, e.g., save it to a database
   const res = await db.employees.create({
@@ -46,8 +62,6 @@ export async function POST(request: Request): Promise<Response> {
       hashed_password:  await bcrypt.hash(data.password, 10),
       is_admin: data.isAdmin,
     },
-  }).then((result) => {
-    console.log('User created successfully:', result)
   }).catch((error) => {
     console.error('Error creating user:', error);
     throw error;
