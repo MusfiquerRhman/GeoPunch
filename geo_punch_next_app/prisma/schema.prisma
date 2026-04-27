@@ -15,6 +15,7 @@ model attendance_record {
   selfie_url   String
   submitted_at DateTime?  @default(now()) @db.Timestamp(6)
   status       Int?       @default(1)
+  address      String?
   employees    employees? @relation(fields: [employee_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
 }
 

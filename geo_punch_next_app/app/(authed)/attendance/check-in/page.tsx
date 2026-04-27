@@ -12,6 +12,7 @@ interface CheckInRecord {
     selfie_url: string; 
     submitted_at: Date; 
     status: number; 
+    address: string;
     employee: { 
         id: string; 
         name: string; 
@@ -20,25 +21,11 @@ interface CheckInRecord {
 };
 
 const CheckInPage = () => {
-    // const [record, setRecord] = useState<>([]);
-
-    // useEffect(() => {
-    //     console.log("record", record);
-    // }, [record]);
-
-
     async function fetchCheckins() {
         const res = await fetch("/api/admin/checkin");
         if (!res.ok) throw new Error("Failed to fetch checkins");
         return res.json();
     }
-
-    // useEffect(() => {
-    //     fetch("/api/admin/checkin").then((res) => res.json()).then((data) => {
-    //         setRecord(data.records);
-    //     })
-    //     .catch((err) => console.error(err));
-    // }, []);
 
     const { data, isLoading, error } = useQuery({
         queryKey: ["checkins"],
@@ -46,6 +33,8 @@ const CheckInPage = () => {
     });
 
     const records = data?.records ?? [];
+
+    console.log("Fetched check-in records:", records);
     
     return (
          <Wrapper heading="Punch Management">

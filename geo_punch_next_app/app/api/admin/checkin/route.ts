@@ -9,6 +9,7 @@ export async function GET(): Promise<Response> {
             selfie_url: true,
             submitted_at: true,
             status: true,
+            address: true,
             employees: {
                 select: {
                     id: true,
@@ -29,6 +30,7 @@ export async function GET(): Promise<Response> {
         selfie_url: record.selfie_url,
         submitted_at: record.submitted_at,
         status: record.status,
+        address: record.address,
         employee: {
             id: record.employees?.id,
             name: record.employees?.name,

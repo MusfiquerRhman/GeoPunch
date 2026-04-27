@@ -29,8 +29,9 @@ export async function POST(req: Request) {
     const file = formData.get("photo") as File;
     const latitude = formData.get("latitude");
     const longitude = formData.get("longitude");
+    const address = formData.get("address");
 
-    if (!file || !latitude || !longitude) {
+    if (!file || !latitude || !longitude || !address) {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 });
     }
 
@@ -54,6 +55,7 @@ export async function POST(req: Request) {
         employee_id,
         latitude: Number(latitude),
         longitude: Number(longitude),
+        address: String(address),
         selfie_url: `/uploads/${fileName}`,
       },
     });

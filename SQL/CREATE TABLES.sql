@@ -42,3 +42,5 @@ alter table EMPLOYEES add constraint unique_ID_CARD_NO_per_user unique(id_card_n
 select * from ATTENDANCE_RECORD;
 
 alter table ATTENDANCE_RECORD add column status int default 1;
+
+alter table ATTENDANCE_RECORD add column address text;

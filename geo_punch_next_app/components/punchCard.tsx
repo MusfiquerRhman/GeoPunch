@@ -18,6 +18,7 @@ type PunchRecord = {
   selfie_url: string;
   status: number;
   submitted_at:  Date;
+  address: string;
 };
 
 // mock reverse geocode function (replace with real API)
@@ -83,6 +84,8 @@ export default function PunchCard({ record }: { record: PunchRecord }) {
     reverseGeocode(record.latitude, record.longitude).then(setLocation);
   }, [record.latitude, record.longitude]);
 
+  console.log("PunchCard record:", record);
+
   return (
     <div className="max-w-md w-full rounded-2xl border border-gray-200 bg-white shadow-md overflow-hidden hover:shadow-xl transition">
       {/* Header */}
@@ -118,7 +121,7 @@ export default function PunchCard({ record }: { record: PunchRecord }) {
       <div className="p-4 space-y-3 text-sm">
         <div>
           <p className="text-gray-500">Location</p>
-          <p className="font-medium text-gray-800">{location}</p>
+          <p className="font-medium text-gray-800">{record?.address ?? location}</p>
         </div>
 
         <div className="flex justify-between">

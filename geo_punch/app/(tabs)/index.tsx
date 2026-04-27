@@ -29,6 +29,16 @@ export default function HomeScreen() {
 
     const formData = new FormData();
 
+    if(location?.coords.latitude === undefined || location?.coords.longitude === undefined) {
+      alert("Location not available. Please ensure GPS is on and try again.");
+      return;
+    }
+
+    if (!photoUri) {
+      alert("Please take a selfie before submitting attendance.");
+      return;
+    }
+
     formData.append("photo", {
       uri: photoUri,
       name: "selfie.jpg",
@@ -37,6 +47,7 @@ export default function HomeScreen() {
 
     formData.append("latitude", String(location?.coords.latitude ?? ""));
     formData.append("longitude", String(location?.coords.longitude ?? ""));
+    formData.append("address", addrress.map((addr) => `${addr.name}, ${addr.city}, ${addr.country}`).join('\n'));
 
     await fetch(`${API_URL}/geo_punch/record`, {
       method: "POST",
@@ -50,6 +61,7 @@ export default function HomeScreen() {
         setPhotoUri(null);
         queryClient.invalidateQueries({ queryKey: ["attendance"] });
       } else {
+        console.error("Failed to record attendance:", res);
         alert("Failed to record attendance");
       }
     }).catch(err => {
