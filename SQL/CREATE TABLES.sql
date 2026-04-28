@@ -44,3 +44,7 @@ select * from ATTENDANCE_RECORD;
 alter table ATTENDANCE_RECORD add column status int default 1;
 
 alter table ATTENDANCE_RECORD add column address text;
+
+select * from EMPLOYEES as e
+    inner join departments as 
+;

@@ -4,7 +4,7 @@
     "slug": "geo_punch",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/logo.jpeg",
     "scheme": "geopunch",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,

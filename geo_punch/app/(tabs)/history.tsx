@@ -8,12 +8,13 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Fonts } from '@/constants/theme';
-import { API_URL } from '@/constants/API_URL';
+import { API_URL, BASE_URL } from '@/constants/API_URL';
 import * as SecureStore from "expo-secure-store";
 import { useEffect, useState } from 'react';
 import { FlatList, View } from "react-native";
 import AttendanceCard from '@/components/attendenceCard';
 import { useQuery } from "@tanstack/react-query";
+import { useAuth } from '../context/AuthContext';
 
 interface AttendanceRecord {
     id: string;
@@ -25,6 +26,8 @@ interface AttendanceRecord {
 }
 
 export default function TabTwoScreen() {
+    const { logout } = useAuth();
+
   const fetchAttendance = async () => {
     const token = await SecureStore.getItemAsync("token");
 
@@ -41,6 +44,10 @@ export default function TabTwoScreen() {
     if (!res.ok) {
       throw new Error(json.message || "Failed to fetch");
     }
+    if (res.status === 401) {
+      await logout();
+      throw new Error("Unauthorized");
+    }
 
     return json.data;
   };
@@ -54,6 +61,10 @@ export default function TabTwoScreen() {
     queryKey: ["attendance"],
     queryFn: fetchAttendance,
   });
+
+  useEffect(() => {
+    console.log("Attendance data:", attendance);
+  }, [attendance]);
 
   return (
     <ParallaxScrollView
@@ -74,24 +85,24 @@ export default function TabTwoScreen() {
         </ThemedText>
       </ThemedView>
 
-      {/* 🔥 Loading state */}
+      {/* Loading state */}
       {isLoading && (
         <ThemedText>Loading attendance...</ThemedText>
       )}
 
-      {/* ❌ Error state */}
+      {/* Error state */}
       {error && (
         <ThemedText>
           Failed to load attendance
         </ThemedText>
       )}
 
-      {/* 📍 Data */}
+      {/* Data */}
       {attendance.map((item: AttendanceRecord) => (
         <AttendanceCard
           key={item.id}
           item={item}
-          baseUrl="http://192.168.68.54:3000"
+          baseUrl={BASE_URL}
         />
       ))}
 

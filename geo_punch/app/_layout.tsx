@@ -9,8 +9,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 const queryClient = new QueryClient();
 
 function RootLayoutNav() {
-  const { token, loading } = useAuth();
   const colorScheme = useColorScheme();
+  const { token, loading } = useAuth();
 
   if (loading) {
     return (
@@ -20,7 +20,7 @@ function RootLayoutNav() {
     );
   }
 
-  console.log("Token:", token);
+
 
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>

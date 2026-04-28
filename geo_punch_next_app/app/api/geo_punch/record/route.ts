@@ -79,8 +79,6 @@ export async function POST(req: Request) {
 
 export async function GET(req: Request) {
   try {
-    console.log("Received GET request for attendance records");
-
     const authHeader = req.headers.get("authorization");
 
     if (!authHeader?.startsWith("Bearer ")) {
