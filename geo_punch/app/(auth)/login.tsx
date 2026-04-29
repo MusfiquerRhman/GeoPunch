@@ -11,6 +11,7 @@ export default function Login() {
 
     const [idCard, setIdCard] = useState("");
     const [password, setPassword] = useState("");
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     const handleLogin = async () => {
         console.log("Attempting login with ID Card No:", idCard);
@@ -22,7 +23,12 @@ export default function Login() {
                 id_card_no: idCard,
                 password: password,
             }),
+        }).catch((error) => {
+            console.error("Network error during login:", error);
+            alert("Network error. Please check your connection and try again.");
         });
+
+        if (!res) return; // Exit if there was a network error
 
         console.log("Login response status:", res.status);
 
@@ -32,6 +38,7 @@ export default function Login() {
           await login(data.token); // 🔥 triggers route switch
         } else {
           console.error("Login failed:", data.error);
+          setErrorMessage(data.error || "An unknown error occurred.");
         }
     };
 
@@ -54,6 +61,12 @@ export default function Login() {
             />
 
             <ThemedText style={styles.title}>Login to Your Account</ThemedText>
+
+            {errorMessage && (
+              <ThemedText style={{ color: "red", marginBottom: 10 }}>
+                {errorMessage}
+              </ThemedText>
+            )}
 
             <ThemedText style={styles.label}>Id Card No</ThemedText>
             <TextInput
