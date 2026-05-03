@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { userSchema } from "../schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export default function NewUsers() {
     const form = useForm({
@@ -50,8 +51,10 @@ export default function NewUsers() {
 
         if(res.ok) {
             setMessage("User created successfully");
+            toast.success("User created successfully");
         } else {
             setMessage("An error occurred");
+            toast.error("An error occurred while creating the user");
         }
     };
 

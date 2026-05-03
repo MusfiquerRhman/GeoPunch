@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { departmentSchema } from "../schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export default function NewDepartment() {
     const form = useForm({
@@ -32,8 +33,10 @@ export default function NewDepartment() {
 
         if(res.ok) {
             setMessage("Department created successfully");
+            toast.success("Department created successfully");
         } else {
             setMessage("An error occurred");
+            toast.error("An error occurred while creating the department");
         }
 
     };

@@ -6,6 +6,18 @@ export async function GET(request: Request, { params }: { params: { id: string }
     const office = await db.offices.findUnique({
         where: {
             id: id
+        },
+        select: {
+            id: true,
+            name: true,
+            company_id: true,
+            office_locations: {
+                select: {
+                    address: true,
+                    latitude: true,
+                    longitude: true,
+                }
+            }
         }
     });
 
@@ -18,23 +30,47 @@ export async function GET(request: Request, { params }: { params: { id: string }
 
 export async function PUT(request: Request, { params }: { params: { id: string } }): Promise<Response> {
     const { id } = await params;
-    const { name, company_id } = await request.json();
+    const { name, company_id, locations } = await request.json();
 
     if (!name || typeof name !== "string") {
         return new Response("Invalid input", { status: 400 });
     }
 
     try {
-        const updatedOffice = await db.offices.update({
-            where: {
-                id: id
-            },
-            data: {
-                name: name,
-                company_id: company_id  
-            },
-        });
-        return new Response(JSON.stringify(updatedOffice), { status: 200 });
+        return await db.$transaction(async (tx) => {
+            const updatedOffice = await db.offices.update({
+                where: {
+                    id: id
+                },
+                data: {
+                    name: name,
+                    company_id: company_id  
+                },
+            });
+
+            if (locations && Array.isArray(locations)) {
+                // Delete existing locations
+                await db.office_locations.deleteMany({
+                    where: {
+                        office_id: id
+                    }
+                });
+
+                // Create new locations
+                const locationData = locations.map((loc: any) => ({
+                    latitude: loc.lat,
+                    longitude: loc.lng,
+                    address: loc.address,
+                    office_id: id
+                }));
+
+                await db.office_locations.createMany({
+                    data: locationData
+                });
+            }
+
+            return new Response(JSON.stringify(updatedOffice), { status: 200 });
+        })
     }
     catch (error) {
         console.error("Error updating office:", error);

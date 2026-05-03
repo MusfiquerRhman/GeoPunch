@@ -15,7 +15,6 @@ const login = () => {
     useEffect(() => {
         const local_token = localStorage.getItem("token");
 
-        console.log("Token on login page:", local_token);
         if (local_token) {
             setToken(local_token);
             router.push("/"); // Redirect to home page if token exists
@@ -34,7 +33,6 @@ const login = () => {
     const { register, handleSubmit, formState: { errors } } = form;
 
     const onSubmit = async (data: any) => {
-        console.log("Submitting form with data"); // Debug log
         const formData = new FormData();
 
         Object.entries(data).forEach(([key, value]) => {
@@ -65,8 +63,6 @@ const login = () => {
             console.error("Login request failed:", err);
             seterror("An error occurred while trying to log in. Please try again.");
         });
-
-        console.log(res);
     };
 
     return (

@@ -38,7 +38,6 @@ export async function GET(): Promise<Response> {
         }
     }));
 
-    console.log("Fetched attendance records:", records);
 
     return Response.json({ records });
 }

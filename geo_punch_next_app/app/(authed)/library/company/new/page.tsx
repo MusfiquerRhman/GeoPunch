@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { companySchema } from "../schema";
+import { toast } from "sonner";
 
 export default function NewCompany() {
     const form = useForm({
@@ -32,8 +33,10 @@ export default function NewCompany() {
 
         if (res.ok) {
             setMessage("Company created successfully");
+            toast.success("Company created successfully");
         } else {
             setMessage("An error occurred");
+            toast.error("An error occurred while creating the company");
         }
 
     };

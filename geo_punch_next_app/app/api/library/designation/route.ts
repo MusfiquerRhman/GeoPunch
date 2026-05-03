@@ -3,22 +3,20 @@ import { db } from "@/utils/prisma";
 export async function GET():Promise<Response>  {
     const designations = await db.company.findMany();
 
-    console.log("Fetched designations from database:", designations);
-
     return Response.json(designations);
 }
 
 export async function POST(req: Request): Promise<Response> {
-    const { designation } = await req.json();
+    const { name } = await req.json();
 
-    if (!designation || typeof designation !== "string") {
+    if (!name || typeof name !== "string") {
         return new Response("Invalid input", { status: 400 });
     }
 
     try {
         const newDesignation = await db.company.create({
             data: {
-                designations: designation,
+                name: name ,
             },
         });
         return Response.json(newDesignation, { status: 201 });

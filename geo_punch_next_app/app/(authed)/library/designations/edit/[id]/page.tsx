@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { designationSchema } from "../../schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { use, useEffect, useState } from "react";
+import { toast } from "sonner";
 
 type DesignationDetailsPageProps = {
     params: Promise<{ id: string }>
@@ -53,8 +54,10 @@ export default function Edit({ params }: DesignationDetailsPageProps) {
 
         if(res.ok) {
             setMessage("Designation updated successfully");
+            toast.success("Designation updated successfully");
         } else {
             setMessage("An error occurred");
+            toast.error("An error occurred while updating the designation");
         }
 
     };

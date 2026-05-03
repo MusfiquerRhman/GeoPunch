@@ -13,7 +13,6 @@ export async function POST(request: Request): Promise<Response> {
             },
         });
 
-        console.log("DB Update Result:", res);
     } catch (error) {
         console.error("Error rejecting check-in:", error);
         return Response.json({ error: "Failed to reject check-in" }, { status: 500 });

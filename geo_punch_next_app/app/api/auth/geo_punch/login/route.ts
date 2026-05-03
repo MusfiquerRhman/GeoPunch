@@ -6,7 +6,6 @@ import bcrypt from "bcryptjs";
 export async function POST(req: Request) {
   const { id_card_no, password } = await req.json();
 
-  console.log("Received login request for ID Card No:", id_card_no, password);
 
   // TODO: validate user from DB
   const user = await db.employees.findUnique({

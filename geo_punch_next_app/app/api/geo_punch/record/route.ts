@@ -38,7 +38,6 @@ export async function POST(req: Request) {
     // ensure directory exists
     fs.mkdirSync(uploadDir, { recursive: true });
 
-    // 📸 3. save image
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
@@ -47,8 +46,6 @@ export async function POST(req: Request) {
 
     await writeFile(filePath, buffer);
 
-    // 💾 4. insert into DB
-    // 👉 Example SQL (replace with Prisma if needed)
 
     const db_res = await db.attendance_record.create({
       data: {
@@ -58,15 +55,6 @@ export async function POST(req: Request) {
         address: String(address),
         selfie_url: `/uploads/${fileName}`,
       },
-    });
-
-    console.log("DB Insert Result:", db_res);
-
-    console.log({
-      employee_id,
-      latitude,
-      longitude,
-      selfie_url: `/uploads/${fileName}`,
     });
 
     return NextResponse.json({ success: true });
@@ -112,8 +100,6 @@ export async function GET(req: Request) {
       },
       take: 20, // pagination can be added later
     });
-
-    console.log("Fetched records:", records);
 
     return NextResponse.json({
       success: true,

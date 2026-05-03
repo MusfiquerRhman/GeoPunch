@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { designationSchema } from "../schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export default function NewDesignation() {
     const form = useForm({
@@ -32,8 +33,10 @@ export default function NewDesignation() {
 
         if (res.ok) {
             setMessage("Designation created successfully");
+            toast.success("Designation created successfully");
         } else {
             setMessage("An error occurred");
+            toast.error("An error occurred while creating the designation");
         }
 
     };

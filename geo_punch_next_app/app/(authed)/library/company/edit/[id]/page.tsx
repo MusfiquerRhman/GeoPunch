@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { companySchema } from "../../schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { use, useEffect, useState } from "react";
+import { toast } from "sonner";
 
 type CompanyDetailsPageProps = {
     params: Promise<{ id: string }>
@@ -53,8 +54,10 @@ export default function Edit({ params }: CompanyDetailsPageProps) {
 
         if(res.ok) {
             setMessage("Company updated successfully");
+            toast.success("Company updated successfully");
         } else {
             setMessage("An error occurred");
+            toast.error("An error occurred while updating the company");
         }
 
     };

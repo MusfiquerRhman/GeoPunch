@@ -55,8 +55,18 @@ model company {
 }
 
 model offices {
-  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name       String   @db.VarChar(100)
-  company_id String?  @db.Uuid
-  company    company? @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name             String             @db.VarChar(100)
+  company_id       String?            @db.Uuid
+  office_locations office_locations[]
+  company          company?           @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model office_locations {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  address   String?
+  latitude  Float
+  longitude Float
+  office_id String?  @db.Uuid
+  offices   offices? @relation(fields: [office_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }

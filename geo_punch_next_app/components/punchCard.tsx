@@ -84,8 +84,6 @@ export default function PunchCard({ record }: { record: PunchRecord }) {
     reverseGeocode(record.latitude, record.longitude).then(setLocation);
   }, [record.latitude, record.longitude]);
 
-  console.log("PunchCard record:", record);
-
   return (
     <div className="flex flex-row max-w-3xl w-full rounded-2xl border border-gray-200 bg-white shadow-md overflow-hidden hover:shadow-xl transition">
       <div className="flex-1">

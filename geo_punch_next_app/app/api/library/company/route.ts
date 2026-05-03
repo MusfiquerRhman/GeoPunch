@@ -3,8 +3,6 @@ import { db } from "@/utils/prisma";
 export async function GET():Promise<Response>  {
     const companies = await db.company.findMany();
 
-    console.log("Fetched companies from database:", companies);
-
     return Response.json(companies);
 }
 

@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { departmentSchema } from "../../schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { use, useEffect, useState } from "react";
+import { toast } from "sonner";
 
 type DepartmentDetailsPageProps = {
     params: Promise<{ id: string }>
@@ -54,8 +55,10 @@ export default function Edit({ params }: DepartmentDetailsPageProps) {
 
         if(res.ok) {
             setMessage("Department updated successfully");
+            toast.success("Department updated successfully");
         } else {
             setMessage("An error occurred");
+            toast.error("An error occurred while updating the department");
         }
 
     };

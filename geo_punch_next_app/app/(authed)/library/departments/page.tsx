@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { deleteIcon, editIcon } from "@/assets";
 import Image from "next/image";
+import { toast } from "sonner";
 
 export default function DepartmentsPage() {
     const router = useRouter();
@@ -32,14 +33,15 @@ export default function DepartmentsPage() {
 
             if (res.ok) {
                 setDepartments((prev) => prev.filter((dept) => dept.id !== id));
+                toast.success("Department deleted successfully");
             }
             else {
-                alert("Failed to delete department");
+                toast.error("Failed to delete department");
             }
         }
         catch (err) {
             console.error("Error deleting department:", err);
-            alert("An error occurred while deleting the department");
+            toast.error("An error occurred while deleting the department");
         }
     }
 

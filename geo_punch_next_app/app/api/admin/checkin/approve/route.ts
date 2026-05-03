@@ -14,7 +14,6 @@ export async function POST(request: Request): Promise<Response> {
             },
         });
 
-        console.log("DB Update Result:", res);
     } catch (error) {
         console.error("Error approving check-in:", error);
         return Response.json({ error: "Failed to approve check-in" }, { status: 500 });

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { deleteIcon, editIcon } from "@/assets";
 import Image from "next/image";
+import { toast } from "sonner";
 
 export default function CompanyPage() {
     const router = useRouter();
@@ -32,14 +33,16 @@ export default function CompanyPage() {
 
             if (res.ok) {
                 setCompanies((prev) => prev.filter((company) => company.id !== id));
+                toast.success("Company deleted successfully");
             }
             else {
                 alert("Failed to delete company");
+                toast.error("Failed to delete company");
             }
         }
         catch (err) {
             console.error("Error deleting company:", err);
-            alert("An error occurred while deleting the company");
+            toast.error("An error occurred while deleting the company");
         }
     }
 

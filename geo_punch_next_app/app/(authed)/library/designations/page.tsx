@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { deleteIcon, editIcon } from "@/assets";
 import Image from "next/image";
+import { toast } from "sonner";
+
 export default function DesignationsPage() {
     const router = useRouter();
     const [designations, setDesignations] = useState<{
@@ -31,14 +33,15 @@ export default function DesignationsPage() {
 
             if (res.ok) {
                 setDesignations((prev) => prev.filter((deg) => deg.id !== id));
+                toast.success("Designation deleted successfully");
             }
             else {
-                alert("Failed to delete designation");
+                toast.error("Failed to delete designation");
             }
         }
         catch (err) {
             console.error("Error deleting designation:", err);
-            alert("An error occurred while deleting the designation");
+            toast.error("An error occurred while deleting the designation");
         }
     }
 
