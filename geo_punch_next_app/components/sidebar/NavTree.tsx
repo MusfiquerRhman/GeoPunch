@@ -6,7 +6,7 @@ import Link from 'next/link';
 import clsx from 'clsx';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { bookIcon, structureIcon, officeIcon, dashboardIcon, attendanceIcon, checkIcons, logIcon, rankingIcon, adminIcon, userIcon, shieldIcon } from '@/assets';
+import { bookIcon, structureIcon, officeIcon, dashboardIcon, attendanceIcon, checkIcons, logIcon, rankingIcon, adminIcon, userIcon, shieldIcon, cityIcon } from '@/assets';
 
 // Recursive component to render the navigation tree
 const NavTree = () => {
@@ -25,6 +25,12 @@ const NavTree = () => {
             icon: bookIcon,
             link: '/library',
             children: [
+                {
+                    id: 'Companies',
+                    label: 'Companies',
+                    icon: cityIcon,
+                    link: '/library/company',
+                },
                 {
                     id: 'Departments',
                     label: 'Departments',

@@ -22,7 +22,7 @@ const FormField = <T extends FieldValues>({
 
   return (
     <>
-      <div className="flex w-full">
+      <div className="flex items-center w-full">
         <label className="font-medium flex-1">{label}</label>
         <div className="flex-3">
           <input

@@ -38,7 +38,7 @@ const CheckInPage = () => {
     
     return (
          <Wrapper heading="Punch Management">
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 pb-16">
                 {records.map((r: CheckInRecord) => (
                     <PunchCard key={r.id} record={r} />
                 ))}

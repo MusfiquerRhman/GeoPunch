@@ -47,3 +47,16 @@ model employees {
   departments       departments?        @relation(fields: [department_id], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "employee_table_department_id_fkey")
   designations      designations?       @relation(fields: [designation_id], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "employee_table_designation_id_fkey")
 }
+
+model company {
+  id      String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name    String    @db.VarChar(100)
+  offices offices[]
+}
+
+model offices {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name       String   @db.VarChar(100)
+  company_id String?  @db.Uuid
+  company    company? @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}

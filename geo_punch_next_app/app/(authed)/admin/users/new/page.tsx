@@ -118,7 +118,7 @@ export default function NewUsers() {
                         className="rounded-md px-2 py-1 border-2 border-primary w-[250] flex-3"
                     >
                         <option disabled value="">Select Designation</option>
-                        {designations.map((d: any) => (
+                        {(designations ?? []).map((d: any) => (
                             <option key={d.id} value={d.id}>
                                 {d.designations}
                             </option>

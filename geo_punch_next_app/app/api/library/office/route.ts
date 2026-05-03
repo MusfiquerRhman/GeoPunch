@@ -1,7 +1,7 @@
 import { db } from "@/utils/prisma";
 
 export async function GET():Promise<Response>  {
-    const designations = await db.company.findMany();
+    const designations = await db.offices.findMany();
 
     console.log("Fetched designations from database:", designations);
 
@@ -9,16 +9,17 @@ export async function GET():Promise<Response>  {
 }
 
 export async function POST(req: Request): Promise<Response> {
-    const { designation } = await req.json();
+    const { designation, company_id } = await req.json();
 
     if (!designation || typeof designation !== "string") {
         return new Response("Invalid input", { status: 400 });
     }
 
     try {
-        const newDesignation = await db.company.create({
+        const newDesignation = await db.offices.create({
             data: {
-                designations: designation,
+                name: designation,
+                company_id: company_id
             },
         });
         return Response.json(newDesignation, { status: 201 });

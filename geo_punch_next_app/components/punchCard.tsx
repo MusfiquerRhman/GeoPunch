@@ -87,100 +87,117 @@ export default function PunchCard({ record }: { record: PunchRecord }) {
   console.log("PunchCard record:", record);
 
   return (
-    <div className="max-w-md w-full rounded-2xl border border-gray-200 bg-white shadow-md overflow-hidden hover:shadow-xl transition">
+    <div className="flex flex-row max-w-3xl w-full rounded-2xl border border-gray-200 bg-white shadow-md overflow-hidden hover:shadow-xl transition">
+      <div className="flex-1">
       {/* Header */}
-      <div className="p-4 flex items-center gap-4 border-b">
-        <img
-            src={record.selfie_url}
-            alt="selfie"
-            onClick={() => setOpenImage(true)}
-            className="w-14 h-14 rounded-full object-cover border cursor-pointer hover:scale-105 transition"
+        <div className="p-4 flex items-center gap-4 border-b border-gray-300">
+          <img
+              src={record.selfie_url}
+              alt="selfie"
+              onClick={() => setOpenImage(true)}
+              className="w-14 h-14 rounded-full object-cover border cursor-pointer hover:scale-105 transition"
+            />
+
+          <div className="flex-1">
+            <h2 className="text-lg font-semibold text-gray-800">
+              {record.employee.name}
+            </h2>
+            <p className="text-sm text-gray-500">
+              ID: {record.employee.id_card_no}
+            </p>
+          </div>
+
+          <span
+            className={`px-3 py-1 text-xs rounded-full font-medium ${
+              record.status === 2
+                ? "bg-green-100 text-green-700"
+                : record.status === 0 ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"
+            }`}
+          >
+            {record.status === 1 ? "Pending" : record.status === 0 ? "Rejected" : "Approved"}
+          </span>
+        </div>
+
+        {/* Body */}
+        <div className="p-4 space-y-3 text-sm">
+          <div>
+            <p className="text-gray-500">Location</p>
+            <p className="font-medium text-gray-800">{record?.address ?? location}</p>
+          </div>
+
+          <div className="flex justify-between">
+            <div>
+              <p className="text-gray-500">Latitude</p>
+              <p className="font-mono">{record.latitude}</p>
+            </div>
+            <div>
+              <p className="text-gray-500">Longitude</p>
+              <p className="font-mono">{record.longitude}</p>
+            </div>
+          </div>
+
+          <div>
+            <p className="text-gray-500">Submitted At</p>
+            <p className="text-gray-800 font-mono">
+              {formatDateTime(new Date(record.submitted_at))}
+            </p>
+          </div>
+
+          <div>
+              {record.status === 1 && (
+                  <div className="text-sm text-gray-500 flex gap-2">
+                      <button
+                          onClick={() => approveCheckIn(record.id)}
+                          className="bg-teal-500 hover:bg-teal-600 text-white py-2 px-4 rounded-md transition"
+                      >
+                          Approve
+                      </button>
+                      <button
+                          onClick={() => rejectCheckIn(record.id)}
+                          className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-md transition"
+                      >
+                          Reject
+                      </button>
+                  </div>
+              )}
+              {record.status === 2 && (
+                  <div className="text-sm text-gray-500 flex gap-2">
+                      <button 
+                          onClick={() => approveCheckIn(record.id)}
+                          className="bg-teal-500 hover:bg-teal-600 text-white py-2 px-4 rounded-md transition"
+                      >
+                          Reject
+                      </button>
+                  </div>
+              )}
+              {record.status === 0 && (
+                  <button
+                      onClick={() => approveCheckIn(record.id)}
+                      className="bg-teal-500 hover:bg-teal-600 text-white py-2 px-4 rounded-md transition"
+                  >
+                      Approve
+                  </button>
+              )}
+          </div>
+        </div>
+      </div>
+      <div className="h-full flex-1">
+        <div className="w-full h-full">
+          <iframe
+              width="100%"
+              height="100%"
+              className="border-0"
+              loading="lazy"
+              src={`https://www.openstreetmap.org/export/embed.html?bbox=${
+                record.longitude - 0.01
+              }%2C${record.latitude - 0.01}%2C${record.longitude + 0.01}%2C${
+                record.latitude + 0.01
+              }&layer=mapnik&marker=${record.latitude}%2C${record.longitude}`}
           />
-
-        <div className="flex-1">
-          <h2 className="text-lg font-semibold text-gray-800">
-            {record.employee.name}
-          </h2>
-          <p className="text-sm text-gray-500">
-            ID: {record.employee.id_card_no}
-          </p>
-        </div>
-
-        <span
-          className={`px-3 py-1 text-xs rounded-full font-medium ${
-            record.status === 2
-              ? "bg-green-100 text-green-700"
-              : record.status === 0 ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"
-          }`}
-        >
-          {record.status === 1 ? "Pending" : record.status === 0 ? "Rejected" : "Approved"}
-        </span>
-      </div>
-
-      {/* Body */}
-      <div className="p-4 space-y-3 text-sm">
-        <div>
-          <p className="text-gray-500">Location</p>
-          <p className="font-medium text-gray-800">{record?.address ?? location}</p>
-        </div>
-
-        <div className="flex justify-between">
-          <div>
-            <p className="text-gray-500">Latitude</p>
-            <p className="font-mono">{record.latitude}</p>
-          </div>
-          <div>
-            <p className="text-gray-500">Longitude</p>
-            <p className="font-mono">{record.longitude}</p>
-          </div>
-        </div>
-
-        <div>
-          <p className="text-gray-500">Submitted At</p>
-          <p className="text-gray-800 font-mono">
-            {formatDateTime(new Date(record.submitted_at))}
-          </p>
-        </div>
-
-        <div>
-            {record.status === 1 && (
-                <div className="text-sm text-gray-500 flex gap-2">
-                    <button
-                        onClick={() => approveCheckIn(record.id)}
-                        className="bg-teal-500 hover:bg-teal-600 text-white py-2 px-4 rounded-md transition"
-                    >
-                        Approve
-                    </button>
-                    <button
-                        onClick={() => rejectCheckIn(record.id)}
-                        className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-md transition"
-                    >
-                        Reject
-                    </button>
-                </div>
-            )}
-            {record.status === 2 && (
-                <div className="text-sm text-gray-500 flex gap-2">
-                    <button 
-                        onClick={() => approveCheckIn(record.id)}
-                        className="bg-teal-500 hover:bg-teal-600 text-white py-2 px-4 rounded-md transition"
-                    >
-                        Reject
-                    </button>
-                </div>
-            )}
-            {record.status === 0 && (
-                <button
-                    onClick={() => approveCheckIn(record.id)}
-                    className="bg-teal-500 hover:bg-teal-600 text-white py-2 px-4 rounded-md transition"
-                >
-                    Approve
-                </button>
-            )}
         </div>
       </div>
 
-      {/* 🔥 IMAGE MODAL */}
+            {/* 🔥 IMAGE MODAL */}
       {openImage && (
         <div
           className="fixed inset-0 bg-black/80 flex items-center justify-center z-50"
@@ -206,32 +223,6 @@ export default function PunchCard({ record }: { record: PunchRecord }) {
           </div>
         </div>
       )}
-
-      <div className="border-t">
-        <button
-            onClick={() => setShowMap(!showMap)}
-            className="w-full px-4 py-3 text-sm font-medium text-gray-700 flex justify-between items-center hover:bg-gray-50 transition"
-        >
-            <span>📍 View Map</span>
-            <span className={`transition ${showMap ? "rotate-180" : ""}`}>⌄</span>
-        </button>
-
-        {showMap && (
-            <div className="w-full h-64">
-            <iframe
-                width="100%"
-                height="100%"
-                className="border-0"
-                loading="lazy"
-                src={`https://www.openstreetmap.org/export/embed.html?bbox=${
-                record.longitude - 0.01
-                }%2C${record.latitude - 0.01}%2C${record.longitude + 0.01}%2C${
-                record.latitude + 0.01
-                }&layer=mapnik&marker=${record.latitude}%2C${record.longitude}`}
-            />
-            </div>
-        )}
-    </div>
     </div>
   );
 }
