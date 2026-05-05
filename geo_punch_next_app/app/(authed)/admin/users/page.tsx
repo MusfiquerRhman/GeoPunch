@@ -69,20 +69,23 @@ export default function Home() {
                 </thead>
                 <tbody>
                     {users.map((user) => (
-                        <tr key={user.id} className="odd:bg-gray-50">
-                            <td className="border border-gray-300 p-2">{user.name}</td>
-                            <td className="border border-gray-300 p-2">{user.email}</td>
-                            <td className="border border-gray-300 p-2">{user.phone_no}</td>
-                            <td className="border border-gray-300 p-2">{user.department}</td>
-                            <td className="border border-gray-300 p-2">{user.designation}</td>
-                            <td className="border border-gray-300 p-2">{user.company}</td>
-                            <td className="border border-gray-300 p-2">{user.is_active ? "Yes" : "No"}</td>
-                            <td className="border border-gray-300 p-2">{user.is_admin ? "Yes" : "No"}</td>
-                            <td className="border border-gray-300 p-2 flex justify-center">
-                                <button className="px-4 py-1 rounded-md mr-2">
+                        <tr key={user.id} className="odd:bg-gray-50 border border-gray-300">
+                            <td className="border-r-2 border-gray-300 p-2">{user.name}</td>
+                            <td className="border-r-2 border-gray-300 p-2">{user.email}</td>
+                            <td className="border-r-2 border-gray-300 p-2">{user.phone_no}</td>
+                            <td className="border-r-2 border-gray-300 p-2">{user.department}</td>
+                            <td className="border-r-2 border-gray-300 p-2">{user.designation}</td>
+                            <td className="border-r-2 border-gray-300 p-2">{user.company}</td>
+                            <td className="border-r-2 border-gray-300 p-2">{user.is_active ? "Yes" : "No"}</td>
+                            <td className="border-r-2 border-gray-300 p-2">{user.is_admin ? "Yes" : "No"}</td>
+                            <td className="p-2 flex justify-center flex-wrap gap-2">
+                                <button 
+                                    className="mr-2"
+                                    onClick={() => router.push(`/admin/users/edit/${user.id}`)}
+                                >
                                     <Image src={editIcon.src} alt="Edit" width={16} height={16} />
                                 </button>
-                                <button className="bg-danger text-white px-4 py-1 rounded-md">
+                                <button>
                                     <Image src={deleteIcon.src} alt="Delete" width={16} height={16} />
                                 </button>
                             </td>

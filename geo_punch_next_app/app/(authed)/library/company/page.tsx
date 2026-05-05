@@ -82,9 +82,9 @@ export default function CompanyPage() {
 
                     <tbody>
                         {companies.map((company) => (
-                            <tr key={company.id}>
+                            <tr key={company.id} className="odd:bg-gray-50 border border-gray-300">
                                 <td className="border border-gray-300 p-2">{company.name}</td>
-                                <td className="border border-gray-300 p-2">
+                                <td className=" p-2">
                                     <button 
                                         className="mr-2"
                                         onClick={() => router.push(`/library/company/edit/${company.id}`)}

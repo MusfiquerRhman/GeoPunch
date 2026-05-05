@@ -96,7 +96,7 @@ export default function Edit({ params }: OfficeDetailsPageProps) {
 
         const res = await response.json(); 
 
-        if (!res.ok) {
+        if (!response.ok) {
             setErrorMessage(res.message); 
             toast.error(res.message || "An error occurred while creating the office");
             setMessage("");
@@ -137,7 +137,7 @@ export default function Edit({ params }: OfficeDetailsPageProps) {
         const fetchOffice = async () => {
             const res = await fetch(`/api/library/office/${id}`);
 
-            if (!res.ok) {
+            if (!response.ok) {
                 console.error("Failed to fetch office");
                 return;
             }

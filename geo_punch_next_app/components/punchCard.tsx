@@ -46,7 +46,7 @@ export default function PunchCard({ record }: { record: PunchRecord }) {
                 },
                 body: JSON.stringify({ id }),
             });
-            if (!res.ok) {
+            if (!response.ok) {
                 const errorData = await res.json();
                 throw new Error(errorData.error || "Failed to approve check-in");
             } else {

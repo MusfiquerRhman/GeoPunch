@@ -2,21 +2,48 @@
 
 import { Wrapper, FormField } from "@/components";
 import { useForm } from "react-hook-form";
-import { userSchema } from "../schema";
+import { userSchema } from "../../schema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { toast } from "sonner";
 
-export default function NewUsers() {
+type EmployeeDetailsPageProps = {
+    params: Promise<{ id: string }>
+};
+
+export default function NewUsers({ params }: EmployeeDetailsPageProps){
+    const { id } = use(params);
+
     const form = useForm({
         resolver: zodResolver(userSchema),
     });
 
     const [message, setMessage] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
-    
 
-    const { register, handleSubmit, formState: { errors } } = form;
+    const { register, handleSubmit, formState: { errors }, setValue } = form;
+
+    useEffect(() => {   
+        const fetchEmployee = async () => {
+            const res = await fetch(`/api/users/${id}`);
+            if (res.ok) {
+                console.log("Employee data fetched successfully", res);
+                const data = await res.json();
+                setValue("id_card_no", data.id_card_no);
+                setValue("name", data.name);
+                setValue("email", data.email);
+                setValue("department_id", data.department_id);
+                setValue("password", data.password);
+                setValue("designation_id", data.designation_id);
+                setValue("company_id", data.company_id);
+                setValue("phone_no", data.phone_no);
+                setValue("isActive", data.is_active);
+                setValue("isAdmin", data.is_admin);
+            }
+        };
+
+        fetchEmployee();
+    }, [id, setValue]);
 
     const [departments, setDepartments] = useState([]);
 
@@ -52,8 +79,8 @@ export default function NewUsers() {
             formData.append(key, String(value));
         });
 
-        const response = await fetch("/api/users", {
-            method: "POST",
+        const response = await fetch(`/api/users/${id}`, {
+            method: "PUT",
             body: JSON.stringify(data),
             headers: {
                 "Content-Type": "application/json",
@@ -61,14 +88,18 @@ export default function NewUsers() {
         })
         
         const res = await response.json(); 
+        console.log("Response from server:", res, response );
+
 
         if (!response.ok) {
+            toast.error(res.message || "An error occurred while creating the office");
             setErrorMessage(res.message);
             setMessage("");
             return;
         }
 
-        setMessage("User created successfully");
+        setMessage("User updated successfully");
+        toast.success("User updated successfully");
     };
 
     return (

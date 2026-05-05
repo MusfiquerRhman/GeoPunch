@@ -83,10 +83,10 @@ export default function Officepage() {
 
                     <tbody>
                         {offices.map((office) => (
-                            <tr key={office.id}>
+                            <tr key={office.id} className="odd:bg-gray-50 border border-gray-300">
                                 <td className="border border-gray-300 p-2">{office.name}</td>
                                 <td className="border border-gray-300 p-2">{office.company.name}</td>
-                                <td className="border border-gray-300 p-2">
+                                <td className="p-2">
                                     <button 
                                         className="mr-2"
                                         onClick={() => router.push(`/library/offices/edit/${office.id}`)}

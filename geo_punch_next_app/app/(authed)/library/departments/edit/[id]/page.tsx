@@ -56,7 +56,7 @@ export default function Edit({ params }: DepartmentDetailsPageProps) {
 
         const res = await response.json(); 
 
-        if (!res.ok) {
+        if (!response.ok) {
             setErrorMessage(res.message); 
             toast.error(res.message || "An error occurred while creating the office");
             setMessage("");

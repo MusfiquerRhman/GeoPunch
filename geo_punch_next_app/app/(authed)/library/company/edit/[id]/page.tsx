@@ -55,7 +55,7 @@ export default function Edit({ params }: CompanyDetailsPageProps) {
 
         const res = await response.json(); 
 
-        if (!res.ok) {
+        if (!response.ok) {
             setErrorMessage(res.message); 
             toast.error(res.message || "An error occurred while creating the office");
             setMessage("");
@@ -83,7 +83,7 @@ export default function Edit({ params }: CompanyDetailsPageProps) {
                     errors={form.formState.errors.name}
                 />
                 <button type="submit" className="bg-primary text-white px-4 py-2 rounded-md">
-                    Update Designation
+                    Update Company
                 </button>
             </form>
         </Wrapper>

@@ -81,9 +81,9 @@ export default function DepartmentsPage() {
 
                     <tbody>
                         {departments.map((department) => (
-                            <tr key={department.id}>
+                            <tr key={department.id} className="odd:bg-gray-50 border border-gray-300">
                                 <td className="border border-gray-300 p-2">{department.department_name}</td>
-                                <td className="border border-gray-300 p-2">
+                                <td className="border">
                                     <button 
                                         className="mr-2"
                                         onClick={() => router.push(`/library/departments/edit/${department.id}`)}

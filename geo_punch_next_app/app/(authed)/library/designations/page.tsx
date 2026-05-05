@@ -81,9 +81,9 @@ export default function DesignationsPage() {
 
                     <tbody>
                         {designations.map((designation) => (
-                            <tr key={designation.id}>
+                            <tr key={designation.id} className="odd:bg-gray-50 border border-gray-300">
                                 <td className="border border-gray-300 p-2">{designation.designations}</td>
-                                <td className="border border-gray-300 p-2">
+                                <td className="border">
                                     <button 
                                         className="mr-2"
                                         onClick={() => router.push(`/library/designations/edit/${designation.id}`)}
