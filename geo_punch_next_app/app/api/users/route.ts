@@ -1,5 +1,6 @@
 import { db } from "@/utils/prisma";
 import bcrypt from "bcryptjs";
+import { handlePrismaError } from "../_utils/handlePrismaError";
 
 export async function GET(): Promise<Response> {
   const data = await db.employees.findMany({
@@ -15,6 +16,12 @@ export async function GET(): Promise<Response> {
         select: {
           id: true,
           designations: true,
+        }
+      },
+      company: {
+        select: {
+          id: true,
+          name: true,
         }
       },
       id_card_no: true,
@@ -36,6 +43,7 @@ export async function GET(): Promise<Response> {
     is_admin: user.is_admin,
     department: user.departments?.department_name ?? null,
     designation: user.designations?.designations ?? null,
+    company: user.company?.name ?? null,
   }));
 
   return Response.json({ users });
@@ -45,27 +53,35 @@ export async function POST(request: Request): Promise<Response> {
   const data = await request.json();
 
   // Here you would typically handle the data, e.g., save it to a database
-  const res = await db.employees.create({
-    data: {
-      id_card_no: data.id_card_no,
-      name: data.name,
-      departments: {
-        connect: { id: data.department_id },
+  try {
+    const res = await db.employees.create({
+      data: {
+        id_card_no: data.id_card_no,
+        name: data.name,
+        departments: {
+          connect: { id: data.department_id },
+        },
+        company: {
+          connect: { id: data.company_id },
+        },
+        designations: {
+          connect: { id: data.designation_id },
+        },
+        phone_no: data.phone_no,
+        is_active: data.isActive,
+        email: data.email,
+        password: data.password,
+        hashed_password:  await bcrypt.hash(data.password, 10),
+        is_admin: data.isAdmin,
       },
-      designations: {
-        connect: { id: data.designation_id },
-      },
-      phone_no: data.phone_no,
-      is_active: data.isActive,
-      email: data.email,
-      password: data.password,
-      hashed_password:  await bcrypt.hash(data.password, 10),
-      is_admin: data.isAdmin,
-    },
-  }).catch((error) => {
-    console.error('Error creating user:', error);
-    throw error;
-  });
+    })
+    return Response.json({ message: 'User created successfully', user: res });
+  } catch(error) {
+    const err = handlePrismaError(error);
 
-  return Response.json({ message: 'User created successfully', user: res });
+    return new Response(
+      JSON.stringify({ message: err.message }),
+      { status: 400 }
+    );
+  };
 }

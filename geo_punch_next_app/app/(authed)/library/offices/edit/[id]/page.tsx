@@ -86,7 +86,7 @@ export default function Edit({ params }: OfficeDetailsPageProps) {
             locations,
         };
 
-        const res = await fetch(`/api/library/office/${id}`, {
+        const response = await fetch(`/api/library/office/${id}`, {
             method: "PUT",
             body: JSON.stringify(payload),
             headers: {
@@ -94,12 +94,17 @@ export default function Edit({ params }: OfficeDetailsPageProps) {
             },
         });
 
-        if(res.ok) {
-            setMessage("Office updated successfully");
-            toast.success("Office updated successfully");
-        } else {
-            setMessage("An error occurred");
+        const res = await response.json(); 
+
+        if (!res.ok) {
+            setErrorMessage(res.message); 
+            toast.error(res.message || "An error occurred while creating the office");
+            setMessage("");
+            return;
         }
+
+        setMessage("Company created successfully");
+        toast.success("Company created successfully");
     };
 
     // Update address

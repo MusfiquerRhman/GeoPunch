@@ -96,7 +96,7 @@ export default function NewOffice() {
     // clear message before request
     setErrorMessage("");
 
-    const res = await fetch("/api/library/office", {
+    const response = await fetch("/api/library/office", {
       method: "POST",
       body: JSON.stringify(payload),
       headers: {
@@ -104,12 +104,18 @@ export default function NewOffice() {
       },
     });
 
-    if (res.ok) {
-      setMessage("Office created successfully");
-      toast.success("Office updated successfully");
-    } else {
-      setMessage("An error occurred");
-    }
+        const res = await response.json(); 
+
+        if (!res.ok) {
+            setErrorMessage(res.message); 
+            toast.error(res.message || "An error occurred while creating the office");
+            toast.error(res.message || "An error occurred while creating the office");
+            setMessage("");
+            return;
+        }
+
+        setMessage("Company created successfully");
+        toast.success("Company created successfully");
   };
 
   return (

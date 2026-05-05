@@ -97,7 +97,7 @@ export default function MapPicker({
     <div className="w-full">
       <MapContainer
         center={[23.8103, 90.4125]}
-        zoom={13}
+        zoom={14}
         style={{ height: "400px", width: "100%" }}
       >
         <TileLayer

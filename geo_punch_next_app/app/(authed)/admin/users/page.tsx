@@ -18,6 +18,7 @@ export default function Home() {
         is_admin: boolean;
         department: string | null;
         designation: string | null;
+        company: string | null;
     }[]>([]);
 
     useEffect(() => {
@@ -60,6 +61,7 @@ export default function Home() {
                         <th className="border border-gray-300 p-2">Phone</th>
                         <th className="border border-gray-300 p-2">Department</th>
                         <th className="border border-gray-300 p-2">Designation</th>
+                        <th className="border border-gray-300 p-2">Company</th> 
                         <th className="border border-gray-300 p-2">Is Active</th>
                         <th className="border border-gray-300 p-2">Is Admin</th>
                         <th className="border border-gray-300 p-2"></th>
@@ -73,6 +75,7 @@ export default function Home() {
                             <td className="border border-gray-300 p-2">{user.phone_no}</td>
                             <td className="border border-gray-300 p-2">{user.department}</td>
                             <td className="border border-gray-300 p-2">{user.designation}</td>
+                            <td className="border border-gray-300 p-2">{user.company}</td>
                             <td className="border border-gray-300 p-2">{user.is_active ? "Yes" : "No"}</td>
                             <td className="border border-gray-300 p-2">{user.is_admin ? "Yes" : "No"}</td>
                             <td className="border border-gray-300 p-2 flex justify-center">

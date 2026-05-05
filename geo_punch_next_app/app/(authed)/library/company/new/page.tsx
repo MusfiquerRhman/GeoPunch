@@ -12,7 +12,8 @@ export default function NewCompany() {
         resolver: zodResolver(companySchema),
     });
 
-    const [message, setMessage] = useState('')
+    const [message, setMessage] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
 
     const { register, handleSubmit, formState: { errors } } = form;
 
@@ -23,28 +24,34 @@ export default function NewCompany() {
             formData.append(key, String(value));
         });
 
-        const res = await fetch("/api/library/company", {
+        const response = await fetch("/api/library/company", {
             method: "POST",
             body: JSON.stringify(data),
             headers: {
                 "Content-Type": "application/json",
             },
         });
+        
+        const res = await response.json(); 
 
-        if (res.ok) {
-            setMessage("Company created successfully");
-            toast.success("Company created successfully");
-        } else {
-            setMessage("An error occurred");
-            toast.error("An error occurred while creating the company");
+        if (!res.ok) {
+            setErrorMessage(res.message); 
+            toast.error(res.message || "An error occurred while creating the office");
+            setMessage("");
+            return;
         }
 
+        setMessage("Company created successfully");
+        toast.success("Company created successfully");
     };
 
     return (
         <Wrapper heading="Company Management">
             {message && <p className="w-full max-w-[550] text-green-500 border border-green-500 p-2 bg-green-50 rounded-md mb-4">
                 {message}
+            </p>}
+            {errorMessage && <p className="w-full max-w-[550] text-red-500 border border-red-500 p-2 bg-red-50 rounded-md mb-4">
+                {errorMessage}
             </p>}
             <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 w-full max-w-[550]">
                 <FormField

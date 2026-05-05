@@ -5,6 +5,7 @@ export const userSchema = z.object({
     name: z.string().min(1, "Name is required"),
     department_id: z.string().optional(),
     designation_id: z.string().optional(),
+    company_id: z.string().optional(),
     phone_no: z.string().min(1, "Phone No is required"),
     isActive: z.boolean(),
     email: z.email("Invalid email address"),

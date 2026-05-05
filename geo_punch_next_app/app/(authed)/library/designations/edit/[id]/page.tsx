@@ -20,7 +20,8 @@ export default function Edit({ params }: DesignationDetailsPageProps) {
         resolver: zodResolver(designationSchema),
     });
 
-    const [message, setMessage] = useState('')
+    const [message, setMessage] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
 
     const { register, handleSubmit, formState: { errors }, setValue } = form;
 
@@ -44,7 +45,7 @@ export default function Edit({ params }: DesignationDetailsPageProps) {
             formData.append(key, String(value));
         });
 
-        const res = await fetch(`/api/library/designation/${id}`, {
+        const response = await fetch(`/api/library/designation/${id}`, {
             method: "PUT",
             body: JSON.stringify(data),
             headers: {
@@ -52,20 +53,26 @@ export default function Edit({ params }: DesignationDetailsPageProps) {
             },
         });
 
-        if(res.ok) {
-            setMessage("Designation updated successfully");
-            toast.success("Designation updated successfully");
-        } else {
-            setMessage("An error occurred");
-            toast.error("An error occurred while updating the designation");
+        const res = await response.json(); 
+
+        if (!res.ok) {
+            setErrorMessage(res.message); 
+            toast.error(res.message || "An error occurred while creating the office");
+            setMessage("");
+            return;
         }
 
+        setMessage("Designation updated successfully"); 
+        toast.success("Designation updated successfully");
     };
 
     return (
         <Wrapper heading="Update Designation">
             {message && <p className="w-full max-w-[550] text-green-500 border border-green-500 p-2 bg-green-50 rounded-md mb-4">
                 {message}
+            </p>}
+            {errorMessage && <p className="w-full max-w-[550] text-red-500 border border-red-500 p-2 bg-red-50 rounded-md mb-4">
+                {errorMessage}
             </p>}
             <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 w-full max-w-[550]">
                 <FormField  

@@ -1,9 +1,10 @@
+import { handlePrismaError } from "@/app/api/_utils/handlePrismaError";
 import { db } from "@/utils/prisma";
 
 export async function GET(request: Request, { params }: { params: { id: string } }): Promise<Response> {
     const { id } = await params;
     
-    const designation = await db.company.findUnique({
+    const designation = await db.designations.findUnique({
         where: {
             id: id
         }
@@ -25,7 +26,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     }
 
     try {
-        const updatedDesignation = await db.company.update({
+        const updatedDesignation = await db.designations.update({
             where: {
                 id: id
             },
@@ -37,14 +38,19 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     }
     catch (error) {
         console.error("Error updating designation:", error);
-        return new Response("Internal Server Error", { status: 500 });
+          const err = handlePrismaError(error);
+
+        return new Response(
+            JSON.stringify({ message: err.message }),
+            { status: 400 }
+        );
     }
 }
 
 export async function DELETE(request: Request, { params }: { params: { id: string } }): Promise<Response> {
     const { id } = await params;
     try {
-        await db.company.delete({
+        await db.designations.delete({
             where: {
                 id: id
             },
@@ -53,6 +59,11 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
     }
     catch (error) {
         console.error("Error deleting designation:", error);
-        return new Response("Internal Server Error", { status: 500 });
+        const err = handlePrismaError(error);
+        
+        return new Response(
+            JSON.stringify({ message: err.message }),
+            { status: 400 }
+        );
     }
 }

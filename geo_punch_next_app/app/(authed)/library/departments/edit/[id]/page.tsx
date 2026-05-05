@@ -21,7 +21,8 @@ export default function Edit({ params }: DepartmentDetailsPageProps) {
         resolver: zodResolver(departmentSchema),
     });
 
-    const [message, setMessage] = useState('')
+    const [message, setMessage] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
 
     const { register, handleSubmit, formState: { errors }, setValue } = form;
 
@@ -45,7 +46,7 @@ export default function Edit({ params }: DepartmentDetailsPageProps) {
             formData.append(key, String(value));
         });
 
-        const res = await fetch(`/api/library/department/${id}`, {
+        const response = await fetch(`/api/library/department/${id}`, {
             method: "PUT",
             body: JSON.stringify(data),
             headers: {
@@ -53,14 +54,17 @@ export default function Edit({ params }: DepartmentDetailsPageProps) {
             },
         });
 
-        if(res.ok) {
-            setMessage("Department updated successfully");
-            toast.success("Department updated successfully");
-        } else {
-            setMessage("An error occurred");
-            toast.error("An error occurred while updating the department");
+        const res = await response.json(); 
+
+        if (!res.ok) {
+            setErrorMessage(res.message); 
+            toast.error(res.message || "An error occurred while creating the office");
+            setMessage("");
+            return;
         }
 
+        setMessage("Department updated successfully");
+        toast.success("Department updated successfully");
     };
 
     return (

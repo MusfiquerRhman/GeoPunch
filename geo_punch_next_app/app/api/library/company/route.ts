@@ -1,4 +1,5 @@
 import { db } from "@/utils/prisma";
+import { handlePrismaError } from "../../_utils/handlePrismaError";
 
 export async function GET():Promise<Response>  {
     const companies = await db.company.findMany();
@@ -23,6 +24,6 @@ export async function POST(request: Request): Promise<Response> {
     }
     catch (error) {
         console.error("Error creating company:", error);
-        return new Response("Internal Server Error", { status: 500 });
+    throw handlePrismaError(error);
     }
 }

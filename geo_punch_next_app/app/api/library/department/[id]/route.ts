@@ -1,3 +1,4 @@
+import { handlePrismaError } from "@/app/api/_utils/handlePrismaError";
 import { db } from "@/utils/prisma";
 
 export async function GET(request: Request, { params }: { params: { id: string } }): Promise<Response> {
@@ -38,7 +39,12 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     }
     catch (error) {
         console.error("Error updating department:", error);
-        return new Response("Internal Server Error", { status: 500 });
+        const err = handlePrismaError(error);
+
+        return new Response(
+            JSON.stringify({ message: err.message }),
+            { status: 400 }
+        );
     }
 }
 
@@ -54,6 +60,11 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
     }
     catch (error) {
         console.error("Error deleting department:", error);
-        return new Response("Internal Server Error", { status: 500 });
+        const err = handlePrismaError(error);
+
+        return new Response(
+            JSON.stringify({ message: err.message }),
+            { status: 400 }
+        );
     }
 }

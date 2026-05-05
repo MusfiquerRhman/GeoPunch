@@ -23,6 +23,6 @@ export async function POST(req: Request): Promise<Response> {
     }
     catch (error) {
         console.error("Error creating department:", error);
-        return new Response("Internal Server Error", { status: 500 });
+    throw handlePrismaError(error);
     }
 }

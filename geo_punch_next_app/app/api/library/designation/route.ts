@@ -1,7 +1,8 @@
 import { db } from "@/utils/prisma";
+import { handlePrismaError } from "../../_utils/handlePrismaError";
 
 export async function GET():Promise<Response>  {
-    const designations = await db.company.findMany();
+    const designations = await db.designations.findMany();
 
     return Response.json(designations);
 }
@@ -14,14 +15,14 @@ export async function POST(req: Request): Promise<Response> {
     }
 
     try {
-        const newDesignation = await db.company.create({
+        const newDesignation = await db.designations.create({
             data: {
-                name: name ,
+                designations: name ,
             },
         });
         return Response.json(newDesignation, { status: 201 });
     } catch (error) {
         console.error("Error creating designation:", error);
-        return new Response("Internal Server Error", { status: 500 });
+    throw handlePrismaError(error);
     }
 }

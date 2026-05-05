@@ -12,7 +12,9 @@ export default function NewUsers() {
         resolver: zodResolver(userSchema),
     });
 
-    const [message, setMessage] = useState('')
+    const [message, setMessage] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
+    
 
     const { register, handleSubmit, formState: { errors } } = form;
 
@@ -34,6 +36,15 @@ export default function NewUsers() {
         .catch((err) => console.error(err));
     }, []);
 
+    const [companies, setCompanies] = useState([]);
+
+    useEffect(() => {
+        fetch("/api/library/company").then((res) => res.json()).then((data) => {
+            setCompanies(data);
+        })
+        .catch((err) => console.error(err));
+    }, []);
+
     const onSubmit = async (data: any) => {
         const formData = new FormData();
 
@@ -41,27 +52,32 @@ export default function NewUsers() {
             formData.append(key, String(value));
         });
 
-        const res = await fetch("/api/users", {
+        const response = await fetch("/api/users", {
             method: "POST",
             body: JSON.stringify(data),
             headers: {
                 "Content-Type": "application/json",
             },
-        });
+        })
+        
+        const res = await response.json(); 
 
-        if(res.ok) {
-            setMessage("User created successfully");
-            toast.success("User created successfully");
-        } else {
-            setMessage("An error occurred");
-            toast.error("An error occurred while creating the user");
+        if (!res.ok) {
+            setErrorMessage(res.message);
+            setMessage("");
+            return;
         }
+
+        setMessage("User created successfully");
     };
 
     return (
         <Wrapper heading="User Management">
             {message && <p className="w-full max-w-[550] text-green-500 border border-green-500 p-2 bg-green-50 rounded-md mb-4">
                 {message}
+            </p>}
+            {errorMessage && <p className="w-full max-w-[550] text-red-500 border border-red-500 p-2 bg-red-50 rounded-md mb-4">
+                {errorMessage}
             </p>}
             <form onSubmit={handleSubmit(onSubmit)}
                 className="flex flex-row flex-wrap gap-4 w-full max-w-[550]"
@@ -124,6 +140,19 @@ export default function NewUsers() {
                         {(designations ?? []).map((d: any) => (
                             <option key={d.id} value={d.id}>
                                 {d.designations}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <div className="flex w-full">
+                    <label className="font-medium flex-1">Company ID</label>
+                    <select defaultValue={''} {...register("company_id")} 
+                        className="rounded-md px-2 py-1 border-2 border-primary w-[250] flex-3"
+                    >
+                        <option disabled value="">Select Company</option>
+                        {(companies ?? []).map((c: any) => (
+                            <option key={c.id} value={c.id}>
+                                {c.name}
                             </option>
                         ))}
                     </select>
