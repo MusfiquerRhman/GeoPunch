@@ -10,16 +10,26 @@ import { toast } from "sonner";
 export default function CompanyPage() {
     const router = useRouter();
     const [companies, setCompanies] = useState<{
-        id: number;
-        name: string;
-    }[]>([]);
+        companies: { id: number; name: string; }[];
+        count: number;
+    }>({ companies: [], count: 0 });
+
+    const [page, setpage] = useState(0);
+
+    const nextPage = () => {
+        setpage(page => page + 1);
+    }
+
+    const prevPage = () => {
+        setpage(page => page - 1);
+    }
 
     useEffect(() => {
-        fetch("/api/library/company").then((res) => res.json()).then((data) => {
+        fetch(`/api/library/company?page=${page}`).then((res) => res.json()).then((data) => {
             setCompanies(data);
         })
         .catch((err) => console.error(err));
-    }, []);
+    }, [page]);
 
     const handleDelete = async (id: number) => {
         if (!confirm("Are you sure you want to delete this company?")) {
@@ -32,7 +42,11 @@ export default function CompanyPage() {
             });
 
             if (res.ok) {
-                setCompanies((prev) => prev.filter((company) => company.id !== id));
+                setCompanies((prev) => ({
+                    ...prev,
+                    companies: prev.companies.filter((company) => company.id !== id),
+                    count: Math.max(0, prev.count - 1),
+                }));
                 toast.success("Company deleted successfully");
             }
             else {
@@ -71,34 +85,54 @@ export default function CompanyPage() {
                 </div>
             </div>
 
-            {companies?.length > 0 ? (
-                <table className="w-full border border-gray-300 text-center">
-                    <thead>
-                        <tr>
-                            <th className="border border-gray-300 p-2">Name</th>
-                            <th className="border border-gray-300 p-2">Actions</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        {companies.map((company) => (
-                            <tr key={company.id} className="odd:bg-gray-50 border border-gray-300">
-                                <td className="border border-gray-300 p-2">{company.name}</td>
-                                <td className=" p-2">
-                                    <button 
-                                        className="mr-2"
-                                        onClick={() => router.push(`/library/company/edit/${company.id}`)}
-                                    >
-                                        <Image src={editIcon} alt="Edit" width={20} height={20} />
-                                    </button>
-                                    <button onClick={() => handleDelete(company.id)}>
-                                        <Image src={deleteIcon} alt="Delete" width={20} height={20} />
-                                    </button>
-                                </td>
+            {companies.companies.length > 0 ? (
+                <div className="flex flex-col gap-4">
+                    <table className="w-full border border-gray-300 text-center">
+                        <thead>
+                            <tr>
+                                <th className="border border-gray-300 p-2">Name</th>
+                                <th className="border border-gray-300 p-2">Actions</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+
+                        <tbody>
+                            {companies.companies.map((company) => (
+                                <tr key={company.id} className="odd:bg-gray-50 border border-gray-300">
+                                    <td className="border border-gray-300 p-2">{company.name}</td>
+                                    <td className=" p-2">
+                                        <button 
+                                            className="mr-2"
+                                            onClick={() => router.push(`/library/company/edit/${company.id}`)}
+                                        >
+                                            <Image src={editIcon} alt="Edit" width={20} height={20} />
+                                        </button>
+                                        <button onClick={() => handleDelete(company.id)}>
+                                            <Image src={deleteIcon} alt="Delete" width={20} height={20} />
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+
+                    <div className="p-2 w-full flex flex-row justify-center gap-8 items-center">
+                        <button
+                            onClick={prevPage}
+                            disabled={page === 0}
+                            className="hover:cursor-pointer bg-primary hover:bg-primary disabled:hover:cursor-not-allowed text-white py-2 px-4 rounded-md disabled:cursor-not-allowed"
+                        >
+                            Previous
+                        </button>
+                        <p> {page + 1} / {Math.ceil(companies.count / 10)}</p>
+                        <button
+                            onClick={nextPage}
+                            disabled={companies.companies.length < 10} 
+                            className="hover:cursor-pointer bg-primary hover:bg-primary disabled:hover:cursor-not-allowed text-white py-2 px-4 rounded-md disabled:cursor-not-allowed"
+                        >
+                            Next
+                        </button>
+                    </div>
+                </div>
             ) : (
                 <p>No companies found.</p>
             )}

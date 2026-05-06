@@ -1,6 +1,9 @@
 import { db } from "@/utils/prisma";
 
-export async function GET(): Promise<Response> {
+export async function GET(request: Request): Promise<Response> {
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get("page") || "0");
+
     const data = await db.attendance_record.findMany({
         select: {
             id: true,
@@ -21,6 +24,8 @@ export async function GET(): Promise<Response> {
         orderBy: {
             submitted_at: "desc",
         },
+        skip: page * 10,
+        take: 10,
     });
 
     const records = data.map((record) => ({
@@ -35,7 +40,7 @@ export async function GET(): Promise<Response> {
             id: record.employees?.id,
             name: record.employees?.name,
             id_card_no: record.employees?.id_card_no,
-        }
+        },
     }));
 
 

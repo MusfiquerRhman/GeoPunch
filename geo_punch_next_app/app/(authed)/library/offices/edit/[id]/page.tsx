@@ -38,7 +38,7 @@ export default function Edit({ params }: OfficeDetailsPageProps) {
     useEffect(() => {
       fetch("/api/library/company")
         .then((res) => res.json())
-        .then((data) => setCompanies(data))
+        .then((data) => setCompanies(data.companies))
         .catch((err) => console.error(err));
     }, []);
 
@@ -137,7 +137,7 @@ export default function Edit({ params }: OfficeDetailsPageProps) {
         const fetchOffice = async () => {
             const res = await fetch(`/api/library/office/${id}`);
 
-            if (!response.ok) {
+            if (!res.ok) {
                 console.error("Failed to fetch office");
                 return;
             }
@@ -192,7 +192,7 @@ export default function Edit({ params }: OfficeDetailsPageProps) {
         <div className="flex w-full">
             <label className="font-medium flex-1">Company ID</label>
             <select defaultValue={''} {...register("company_id")} 
-                className="rounded-md px-2 py-1 border-2 border-primary w-[250] flex-3"
+                className={`rounded-md px-2 py-1 border-2 border-primary w-[250] flex-3 ${form.formState.errors.company_id ? 'border-red-500' : ''}`}
             >
                 <option disabled value="">Select Company</option>
                 {companies.map((c: any) => (
@@ -201,7 +201,9 @@ export default function Edit({ params }: OfficeDetailsPageProps) {
                     </option>
                 ))}
             </select>
+            {form.formState.errors.company_id && <p className="text-red-500 text-sm">{form.formState.errors.company_id.message}</p>}
         </div>
+
 
         {/* 🔥 Locations */}
         <div className="flex flex-col gap-6">

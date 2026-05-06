@@ -30,7 +30,7 @@ export default function NewOffice() {
   useEffect(() => {
     fetch("/api/library/company")
       .then((res) => res.json())
-      .then((data) => setCompanies(data))
+      .then((data) => setCompanies(data.companies))
       .catch((err) => console.error(err));
   }, []);
 
@@ -118,6 +118,10 @@ export default function NewOffice() {
         toast.success("Company created successfully");
   };
 
+    useEffect(() => {
+      console.log(form.formState.errors);
+    }, [form.formState.errors]);
+
   return (
     <Wrapper heading="Office Management">
         {message && (
@@ -146,16 +150,19 @@ export default function NewOffice() {
         {/* Company Select */}
         <div className="flex w-full">
             <label className="font-medium flex-1">Company ID</label>
-            <select defaultValue={''} {...register("company_id")} 
-                className="rounded-md px-2 py-1 border-2 border-primary w-[250] flex-3"
-            >
-                <option disabled value="">Select Company</option>
-                {companies.map((c: any) => (
-                    <option key={c.id} value={c.id}>
-                        {c.name}
-                    </option>
-                ))}
-            </select>
+            <div className="w-[250] flex-3">
+              <select defaultValue={''} {...register("company_id")} 
+                className="rounded-md px-2 py-2 w-full border-2 border-primary flex-3"
+              >
+                  <option disabled value="">Select Company</option>
+                  {companies.map((c: any) => (
+                      <option key={c.id} value={c.id}>
+                          {c.name}
+                      </option>
+                  ))}
+              </select>
+              {form.formState.errors.company_id && <p className="text-red-500 text-sm">{form.formState.errors.company_id.message}</p>}
+            </div>
         </div>
 
         {/* 🔥 Locations */}

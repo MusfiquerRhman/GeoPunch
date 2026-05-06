@@ -1,28 +1,41 @@
 import { db } from "@/utils/prisma";
 import { handlePrismaError } from "../../_utils/handlePrismaError";
 
-export async function GET():Promise<Response>  {
-    const designations = await db.designations.findMany();
+export async function GET(request: Request): Promise<Response> {
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get("page") || "0");
 
-    return Response.json(designations);
+    const designations = await db.designations.findMany({
+        skip: page * 10,
+        take: 10,
+    });
+
+    const count = await db.designations.count();
+
+    return Response.json({ designations, count });
 }
 
 export async function POST(req: Request): Promise<Response> {
-    const { name } = await req.json();
+    const { designation } = await req.json();
 
-    if (!name || typeof name !== "string") {
+    if (!designation || typeof designation !== "string") {
         return new Response("Invalid input", { status: 400 });
     }
 
     try {
         const newDesignation = await db.designations.create({
             data: {
-                designations: name ,
+                designations: designation,
             },
         });
         return Response.json(newDesignation, { status: 201 });
     } catch (error) {
         console.error("Error creating designation:", error);
-    throw handlePrismaError(error);
+        const err = handlePrismaError(error);
+
+        return new Response(
+            JSON.stringify({ message: err.message }),
+            { status: 400 }
+        );
     }
 }

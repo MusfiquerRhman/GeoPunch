@@ -9,17 +9,28 @@ import { toast } from "sonner";
 
 export default function DepartmentsPage() {
     const router = useRouter();
+
     const [departments, setDepartments] = useState<{
-        id: number;
-        department_name: string;
-    }[]>([]);
+        departments: { id: number; department_name: string; }[];
+        count: number;
+    }>({ departments: [], count: 0 });
+
+    const [page, setpage] = useState(0);
+
+    const nextPage = () => {
+        setpage(page => page + 1);
+    }
+
+    const prevPage = () => {
+        setpage(page => page - 1);
+    }
 
     useEffect(() => {
-        fetch("/api/library/department").then((res) => res.json()).then((data) => {
+        fetch(`/api/library/department?page=${page}`).then((res) => res.json()).then((data) => {
             setDepartments(data);
         })
         .catch((err) => console.error(err));
-    }, []);
+    }, [page]);
 
     const handleDelete = async (id: number) => {
         if (!confirm("Are you sure you want to delete this department?")) {
@@ -32,7 +43,10 @@ export default function DepartmentsPage() {
             });
 
             if (res.ok) {
-                setDepartments((prev) => prev.filter((dept) => dept.id !== id));
+                setDepartments((prev) => ({
+                    ...prev,
+                    departments: prev.departments.filter((dept) => dept.id !== id),
+                }));
                 toast.success("Department deleted successfully");
             }
             else {
@@ -70,34 +84,54 @@ export default function DepartmentsPage() {
                 </div>
             </div>
 
-            {departments?.length > 0 ? (
-                <table className="w-full border border-gray-300 text-center">
-                    <thead>
-                        <tr>
-                            <th className="border border-gray-300 p-2">Name</th>
-                            <th className="border border-gray-300 p-2">Actions</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        {departments.map((department) => (
-                            <tr key={department.id} className="odd:bg-gray-50 border border-gray-300">
-                                <td className="border border-gray-300 p-2">{department.department_name}</td>
-                                <td className="border">
-                                    <button 
-                                        className="mr-2"
-                                        onClick={() => router.push(`/library/departments/edit/${department.id}`)}
-                                    >
-                                        <Image src={editIcon} alt="Edit" width={20} height={20} />
-                                    </button>
-                                    <button onClick={() => handleDelete(department.id)}>    
-                                        <Image src={deleteIcon} alt="Delete" width={20} height={20} />
-                                    </button>
-                                </td>
+            {departments.departments.length > 0 ? (
+                <div className="flex flex-col gap-4">
+                    <table className="w-full border border-gray-300 text-center">
+                        <thead>
+                            <tr>
+                                <th className="border border-gray-300 p-2">Name</th>
+                                <th className="border border-gray-300 p-2">Actions</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+
+                        <tbody>
+                            {departments.departments.map((department) => (
+                                <tr key={department.id} className="odd:bg-gray-50 border border-gray-300">
+                                    <td className="border border-gray-300 p-2">{department.department_name}</td>
+                                    <td>
+                                        <button 
+                                            className="mr-2"
+                                            onClick={() => router.push(`/library/departments/edit/${department.id}`)}
+                                        >
+                                            <Image src={editIcon} alt="Edit" width={20} height={20} />
+                                        </button>
+                                        <button onClick={() => handleDelete(department.id)}>    
+                                            <Image src={deleteIcon} alt="Delete" width={20} height={20} />
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+
+                    <div className="p-2 w-full flex flex-row justify-center gap-8 items-center">
+                        <button
+                            onClick={prevPage}
+                            disabled={page === 0}
+                            className="hover:cursor-pointer bg-primary hover:bg-primary disabled:hover:cursor-not-allowed text-white py-2 px-4 rounded-md disabled:cursor-not-allowed"
+                        >
+                            Previous
+                        </button>
+                        <p> {page + 1} / {Math.ceil(departments.count / 10)}</p>
+                        <button
+                            onClick={nextPage}
+                            disabled={departments.departments.length < 10} 
+                            className="hover:cursor-pointer bg-primary hover:bg-primary disabled:hover:cursor-not-allowed text-white py-2 px-4 rounded-md disabled:cursor-not-allowed"
+                        >
+                            Next
+                        </button>
+                    </div>
+                </div>
             ) : (
                 <p>No departments found.</p>
             )}

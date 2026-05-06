@@ -35,7 +35,6 @@ export default function PunchCard({ record }: { record: PunchRecord }) {
 
     const [location, setLocation] = useState<string>("Loading location...");
     const [openImage, setOpenImage] = useState(false);
-    const [showMap, setShowMap] = useState(false);
 
     const approveCheckIn = async (id: string) => {
         try {
@@ -46,7 +45,7 @@ export default function PunchCard({ record }: { record: PunchRecord }) {
                 },
                 body: JSON.stringify({ id }),
             });
-            if (!response.ok) {
+            if (!res.ok) {
                 const errorData = await res.json();
                 throw new Error(errorData.error || "Failed to approve check-in");
             } else {
@@ -161,8 +160,8 @@ export default function PunchCard({ record }: { record: PunchRecord }) {
               {record.status === 2 && (
                   <div className="text-sm text-gray-500 flex gap-2">
                       <button 
-                          onClick={() => approveCheckIn(record.id)}
-                          className="bg-teal-500 hover:bg-teal-600 text-white py-2 px-4 rounded-md transition"
+                          onClick={() => rejectCheckIn(record.id)}
+                          className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-md transition"
                       >
                           Reject
                       </button>

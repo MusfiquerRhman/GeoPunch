@@ -33,6 +33,7 @@ export async function GET(): Promise<Response> {
     },
   });
 
+
   const users = data.map((user) => ({
     id: user.id,
     id_card_no: user.id_card_no,

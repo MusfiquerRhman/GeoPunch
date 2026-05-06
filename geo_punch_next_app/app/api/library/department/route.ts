@@ -1,9 +1,18 @@
 import { db } from "@/utils/prisma";
+import { handlePrismaError } from "../../_utils/handlePrismaError";
 
-export async function GET():Promise<Response>  {
-    const departments = await db.departments.findMany();
+export async function GET(request: Request): Promise<Response> {
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get("page") || "0");
 
-    return Response.json(departments);
+    const departments = await db.departments.findMany({
+        skip: page * 10,
+        take: 10,
+    });
+
+    const count = await db.departments.count();
+
+    return Response.json({ departments, count });
 }
 
 export async function POST(req: Request): Promise<Response> {
@@ -23,6 +32,11 @@ export async function POST(req: Request): Promise<Response> {
     }
     catch (error) {
         console.error("Error creating department:", error);
-    throw handlePrismaError(error);
+        const err = handlePrismaError(error);
+
+        return new Response(
+            JSON.stringify({ message: err.message }),
+            { status: 400 }
+        );
     }
 }

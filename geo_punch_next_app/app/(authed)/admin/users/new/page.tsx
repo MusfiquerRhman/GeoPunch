@@ -22,7 +22,7 @@ export default function NewUsers() {
 
     useEffect(() => {
         fetch("/api/library/department").then((res) => res.json()).then((data) => {
-        setDepartments(data);
+            setDepartments(data.departments);
         })
         .catch((err) => console.error(err));
     }, []);
@@ -31,7 +31,7 @@ export default function NewUsers() {
 
     useEffect(() => {
         fetch("/api/library/designation").then((res) => res.json()).then((data) => {
-            setDesignations(data);
+            setDesignations(data.designations);
         })
         .catch((err) => console.error(err));
     }, []);
@@ -40,7 +40,7 @@ export default function NewUsers() {
 
     useEffect(() => {
         fetch("/api/library/company").then((res) => res.json()).then((data) => {
-            setCompanies(data);
+            setCompanies(data.companies);
         })
         .catch((err) => console.error(err));
     }, []);

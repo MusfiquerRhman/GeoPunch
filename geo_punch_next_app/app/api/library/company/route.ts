@@ -1,10 +1,18 @@
 import { db } from "@/utils/prisma";
 import { handlePrismaError } from "../../_utils/handlePrismaError";
 
-export async function GET():Promise<Response>  {
-    const companies = await db.company.findMany();
+export async function GET(request: Request): Promise<Response> {
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get("page") || "0");
 
-    return Response.json(companies);
+    const companies = await db.company.findMany({
+        skip: page * 10,
+        take: 10,
+    });
+
+    const count = await db.company.count();
+
+    return Response.json({ companies, count });
 }
 
 export async function POST(request: Request): Promise<Response> {
@@ -24,6 +32,11 @@ export async function POST(request: Request): Promise<Response> {
     }
     catch (error) {
         console.error("Error creating company:", error);
-    throw handlePrismaError(error);
+        const err = handlePrismaError(error);
+
+        return new Response(
+            JSON.stringify({ message: err.message }),
+            { status: 400 }
+        );
     }
 }

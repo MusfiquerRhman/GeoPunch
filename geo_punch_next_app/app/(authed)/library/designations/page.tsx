@@ -9,17 +9,31 @@ import { toast } from "sonner";
 
 export default function DesignationsPage() {
     const router = useRouter();
+
     const [designations, setDesignations] = useState<{
-        id: number;
-        designations: string;
-    }[]>([]);
+        designations: { id: number; designations: string; }[];
+        count: number;
+    }>({ designations: [], count: 0 });
+
+    const [page, setpage] = useState(0);
+
+    const nextPage = () => {
+        setpage(page => page + 1);
+    }
+
+    const prevPage = () => {
+        setpage(page => page - 1);
+    }
 
     useEffect(() => {
-        fetch("/api/library/designation").then((res) => res.json()).then((data) => {
-            setDesignations(data);
+        fetch(`/api/library/designation?page=${page}`).then((res) => res.json()).then((data) => {
+            setDesignations({
+                designations: data?.designations ?? [],
+                count: data?.count ?? 0,
+            });
         })
         .catch((err) => console.error(err));
-    }, []);
+    }, [page]);
 
     const handleDelete = async (id: number) => {
         if (!confirm("Are you sure you want to delete this designation?")) {
@@ -32,7 +46,10 @@ export default function DesignationsPage() {
             });
 
             if (res.ok) {
-                setDesignations((prev) => prev.filter((deg) => deg.id !== id));
+                setDesignations((prev) => ({
+                    ...prev,
+                    designations: prev.designations.filter((deg) => deg.id !== id)
+                }));
                 toast.success("Designation deleted successfully");
             }
             else {
@@ -70,34 +87,54 @@ export default function DesignationsPage() {
                 </div>
             </div>
 
-            {designations?.length > 0 ? (
-                <table className="w-full border border-gray-300 text-center">
-                    <thead>
-                        <tr>
-                            <th className="border border-gray-300 p-2">Name</th>
-                            <th className="border border-gray-300 p-2">Actions</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        {designations.map((designation) => (
-                            <tr key={designation.id} className="odd:bg-gray-50 border border-gray-300">
-                                <td className="border border-gray-300 p-2">{designation.designations}</td>
-                                <td className="border">
-                                    <button 
-                                        className="mr-2"
-                                        onClick={() => router.push(`/library/designations/edit/${designation.id}`)}
-                                    >
-                                        <Image src={editIcon} alt="Edit" width={20} height={20} />
-                                    </button>
-                                    <button onClick={() => handleDelete(designation.id)}>
-                                        <Image src={deleteIcon} alt="Delete" width={20} height={20} />
-                                    </button>
-                                </td>
+            {designations.designations.length > 0 ? (
+                <div className="flex flex-col gap-4">
+                    <table className="w-full border border-gray-300 text-center">
+                        <thead>
+                            <tr>
+                                <th className="border border-gray-300 p-2">Name</th>
+                                <th className="border border-gray-300 p-2">Actions</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+
+                        <tbody>
+                            {designations.designations.map((designation) => (
+                                <tr key={designation.id} className="odd:bg-gray-50 border border-gray-300">
+                                    <td className="border border-gray-300 p-2">{designation.designations}</td>
+                                    <td>
+                                        <button 
+                                            className="mr-2"
+                                            onClick={() => router.push(`/library/designations/edit/${designation.id}`)}
+                                        >
+                                            <Image src={editIcon} alt="Edit" width={20} height={20} />
+                                        </button>
+                                        <button onClick={() => handleDelete(designation.id)}>
+                                            <Image src={deleteIcon} alt="Delete" width={20} height={20} />
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+
+                    <div className="p-2 w-full flex flex-row justify-center gap-8 items-center">
+                        <button
+                            onClick={prevPage}
+                            disabled={page === 0}
+                            className="hover:cursor-pointer bg-primary hover:bg-primary disabled:hover:cursor-not-allowed text-white py-2 px-4 rounded-md disabled:cursor-not-allowed"
+                        >
+                            Previous
+                        </button>
+                        <p> {page + 1} / {Math.ceil(designations.count / 10)}</p>
+                        <button
+                            onClick={nextPage}
+                            disabled={designations.designations.length < 10} 
+                            className="hover:cursor-pointer bg-primary hover:bg-primary disabled:hover:cursor-not-allowed text-white py-2 px-4 rounded-md disabled:cursor-not-allowed"
+                        >
+                            Next
+                        </button>
+                    </div>
+                </div>
             ) : (
                 <p>No designations found.</p>
             )}

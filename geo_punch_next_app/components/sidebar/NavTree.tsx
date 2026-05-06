@@ -83,12 +83,12 @@ const NavTree = () => {
                     icon: userIcon,
                     link: '/admin/users',
                 },
-                {
-                    id: 'admins',
-                    label: 'Admins',
-                    icon: shieldIcon,
-                    link: '/admin/admins',
-                }
+                // {
+                //     id: 'admins',
+                //     label: 'Admins',
+                //     icon: shieldIcon,
+                //     link: '/admin/admins',
+                // }
             ]
         }
     ];
