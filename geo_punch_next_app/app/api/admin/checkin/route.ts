@@ -5,6 +5,9 @@ export async function GET(request: Request): Promise<Response> {
     const page = parseInt(searchParams.get("page") || "0");
 
     const data = await db.attendance_record.findMany({
+        where: {
+            status: 1, // pending
+        },
         select: {
             id: true,
             latitude: true,

@@ -41,7 +41,7 @@ export default function TabTwoScreen() {
 
     const json = await res.json();
 
-    if (!res.ok) {
+    if (!response.ok) {
       throw new Error(json.message || "Failed to fetch");
     }
     if (res.status === 401) {
@@ -61,10 +61,6 @@ export default function TabTwoScreen() {
     queryKey: ["attendance"],
     queryFn: fetchAttendance,
   });
-
-  useEffect(() => {
-    console.log("Attendance data:", attendance);
-  }, [attendance]);
 
   return (
     <ParallaxScrollView

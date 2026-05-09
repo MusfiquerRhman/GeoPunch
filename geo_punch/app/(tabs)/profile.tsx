@@ -42,7 +42,7 @@ export default function ProfileScreen() {
 
         const json = await res.json();
 
-        if (!res.ok) {
+        if (!response.ok) {
             throw new Error(json.message || "Failed to fetch");
         }
         if (res.status === 401) {

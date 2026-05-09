@@ -19,6 +19,8 @@ CREATE TABLE EMPLOYEES (
     IS_ACTIVE BOOLEAN DEFAULT TRUE
 );
 
+alter table EMPLOYEES add column company_id uuid references company (id) on delete restrict;
+
 CREATE TABLE ATTENDANCE_RECORD (
     ID UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     EMPLOYEE_ID UUID REFERENCES EMPLOYEES(ID) ON DELETE RESTRICT,
@@ -29,22 +31,23 @@ CREATE TABLE ATTENDANCE_RECORD (
     STATUS BOOLEAN DEFAULT FALSE
 );
 
-ALTER TABLE EMPLOYEES ADD COLUMN IS_ADMIN BOOLEAN DEFAULT FALSE;
-ALTER TABLE EMPLOYEES ADD COLUMN HASHED_PASSWORD TEXT;
+CREATE TABLE COMPANY (
+    ID UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    NAME VARCHAR(100) NOT NULL
+);
 
-SELECT * FROM EMPLOYEES;
+CREATE TABLE OFFICES (
+    ID UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    NAME VARCHAR(100) NOT NULL,
+    COMPANY_ID UUID REFERENCES COMPANY (ID)
+);
 
-select * from DEPARTMENTS;
-
-alter table EMPLOYEES add constraint unique_email_per_user unique(email);
-alter table EMPLOYEES add constraint unique_ID_CARD_NO_per_user unique(id_card_no);
+create table office_locations (
+    ID UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    address text,
+    LATITUDE DOUBLE PRECISION NOT NULL,
+    LONGITUDE DOUBLE PRECISION NOT NULL,
+    office_id uuid references offices(id)
+);
 
 select * from ATTENDANCE_RECORD;
-
-alter table ATTENDANCE_RECORD add column status int default 1;
-
-alter table ATTENDANCE_RECORD add column address text;
-
-select * from EMPLOYEES as e
-    inner join departments as
-;

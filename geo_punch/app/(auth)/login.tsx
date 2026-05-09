@@ -14,8 +14,6 @@ export default function Login() {
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     const handleLogin = async () => {
-        console.log("Attempting login with ID Card No:", idCard);
-
         const res = await fetch(`${API_URL}/auth/geo_punch/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -29,8 +27,6 @@ export default function Login() {
         });
 
         if (!res) return; // Exit if there was a network error
-
-        console.log("Login response status:", res.status);
 
         const data = await res.json();
 

@@ -2,8 +2,13 @@ import { db } from "@/utils/prisma";
 import bcrypt from "bcryptjs";
 import { handlePrismaError } from "../_utils/handlePrismaError";
 
-export async function GET(): Promise<Response> {
+export async function GET(request: Request): Promise<Response> {
+  const { searchParams } = new URL(request.url);
+  const page = parseInt(searchParams.get("page") || "0");
+
   const data = await db.employees.findMany({
+    skip: page * 10,
+    take: 10,
     select: {
       id: true,
       departments: {
@@ -33,6 +38,8 @@ export async function GET(): Promise<Response> {
     },
   });
 
+  const count = await db.employees.count();
+
 
   const users = data.map((user) => ({
     id: user.id,
@@ -47,7 +54,7 @@ export async function GET(): Promise<Response> {
     company: user.company?.name ?? null,
   }));
 
-  return Response.json({ users });
+  return Response.json({ users, count });
 }
 
 export async function POST(request: Request): Promise<Response> {
