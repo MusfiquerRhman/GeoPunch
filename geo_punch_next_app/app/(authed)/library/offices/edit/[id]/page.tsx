@@ -143,6 +143,7 @@ export default function Edit({ params }: OfficeDetailsPageProps) {
             }
 
             const data = await res.json();
+            
 
             // 🔥 set form values
             setValue("name", data.name);

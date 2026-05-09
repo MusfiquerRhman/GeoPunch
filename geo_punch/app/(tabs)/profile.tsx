@@ -3,7 +3,7 @@ import { ThemedText } from "@/components/themed-text";
 import { Fonts } from "@/constants/theme";
 import { Image } from "expo-image";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 import { API_URL } from "@/constants/API_URL";
 import * as SecureStore from "expo-secure-store";
 import { useQuery } from "@tanstack/react-query";
@@ -42,7 +42,7 @@ export default function ProfileScreen() {
 
         const json = await res.json();
 
-        if (!response.ok) {
+        if (!json.success) {
             throw new Error(json.message || "Failed to fetch");
         }
         if (res.status === 401) {

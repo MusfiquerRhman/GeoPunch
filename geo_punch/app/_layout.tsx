@@ -2,7 +2,7 @@ import { Redirect, Stack } from "expo-router";
 import { ThemeProvider } from "@react-navigation/native";
 import { DarkTheme, DefaultTheme } from "@react-navigation/native";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { AuthProvider, useAuth } from "./context/AuthContext";
+import { AuthProvider, useAuth } from "../context/AuthContext";
 import { ActivityIndicator, View } from "react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 

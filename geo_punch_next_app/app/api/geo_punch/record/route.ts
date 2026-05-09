@@ -27,11 +27,13 @@ export async function POST(req: Request) {
     const formData = await req.formData();
 
     const file = formData.get("photo") as File;
-    const latitude = formData.get("latitude");
-    const longitude = formData.get("longitude");
-    const address = formData.get("address");
+    const latitude = formData.get("latitude") as string | null;
+    const longitude = formData.get("longitude") as string | null;
+    const address = formData.get("address") as string | null;
+    const office_location_id = formData.get("office_location_id") as string | null;
+    const distance = formData.get("distance") as string | null;
 
-    if (!file || !latitude || !longitude || !address) {
+    if (!file || !latitude || !longitude || !address || !office_location_id || !distance) {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 });
     }
 
@@ -46,14 +48,19 @@ export async function POST(req: Request) {
 
     await writeFile(filePath, buffer);
 
-
     const db_res = await db.attendance_record.create({
       data: {
-        employee_id,
+        employees: {
+          connect: { id: employee_id },
+        },
         latitude: Number(latitude),
         longitude: Number(longitude),
         address: String(address),
         selfie_url: `/uploads/${fileName}`,
+        office_locations: {
+          connect: { id: office_location_id },
+        },
+        distance: Number(distance),
       },
     });
 
@@ -100,6 +107,8 @@ export async function GET(req: Request) {
       },
       take: 20, // pagination can be added later
     });
+
+    console.log("Fetched attendance records:", records);
 
     return NextResponse.json({
       success: true,

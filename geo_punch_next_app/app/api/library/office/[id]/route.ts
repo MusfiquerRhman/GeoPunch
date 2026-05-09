@@ -37,6 +37,8 @@ export async function PUT(request: Request, { params }: { params: { id: string }
         return new Response("Invalid input", { status: 400 });
     }
 
+    console.log("Updating office with data:", { id, name, company_id, locations });
+
     try {
         return await db.$transaction(async (tx) => {
             const updatedOffice = await db.offices.update({

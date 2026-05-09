@@ -14,7 +14,7 @@ import { useEffect, useState } from 'react';
 import { FlatList, View } from "react-native";
 import AttendanceCard from '@/components/attendenceCard';
 import { useQuery } from "@tanstack/react-query";
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 
 interface AttendanceRecord {
     id: string;
@@ -38,16 +38,21 @@ export default function TabTwoScreen() {
         "Content-Type": "application/json",
       },
     });
+    
+    console.log("Raw attendance response:", res);
 
     const json = await res.json();
 
-    if (!response.ok) {
+    console.log("Raw attendance json:", json);
+
+    if (!json.success) {
       throw new Error(json.message || "Failed to fetch");
     }
     if (res.status === 401) {
       await logout();
       throw new Error("Unauthorized");
     }
+
 
     return json.data;
   };
@@ -61,6 +66,10 @@ export default function TabTwoScreen() {
     queryKey: ["attendance"],
     queryFn: fetchAttendance,
   });
+
+  useEffect(() => {
+      console.log("Attendance data:", attendance);
+  }, [attendance]);
 
   return (
     <ParallaxScrollView

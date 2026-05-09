@@ -19,6 +19,9 @@ type PunchRecord = {
   status: number;
   submitted_at:  Date;
   address: string;
+  distance: number;
+  nearest_office_address: string | null;
+  nearest_office_name: string | null;
 };
 
 // mock reverse geocode function (replace with real API)
@@ -32,6 +35,8 @@ async function reverseGeocode(lat: number, lng: number) {
 
 export default function PunchCard({ record }: { record: PunchRecord }) {
     const queryClient = useQueryClient();
+
+    console.log("PunchCard record:", record);
 
     const [location, setLocation] = useState<string>("Loading location...");
     const [openImage, setOpenImage] = useState(false);
@@ -132,6 +137,38 @@ export default function PunchCard({ record }: { record: PunchRecord }) {
               <p className="font-mono">{record.longitude}</p>
             </div>
           </div>
+
+        <div className="rounded-xl border border-gray-200 bg-white p-2">
+          {/* Top row: Name + Distance */}
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col">
+              <span className="text-xs text-gray-500 uppercase tracking-wide">
+                Nearest Office
+              </span>
+
+              <span className="text-base font-semibold text-gray-900">
+                {record.nearest_office_name ?? "N/A"}
+              </span>
+            </div>
+
+            <div className="text-right">
+              <span className="text-xs text-gray-500 uppercase tracking-wide">
+                Distance
+              </span>
+
+              <p className="font-mono text-sm font-medium text-gray-900">
+                {record.distance?.toFixed(2)} m
+              </p>
+            </div>
+          </div>
+
+          {/* Bottom: Address */}
+          <div className="pt-2 border-t border-gray-100">
+            <p className="text-sm text-gray-600 leading-snug">
+              {record.nearest_office_address ?? "N/A"}
+            </p>
+          </div>
+        </div>
 
           <div>
             <p className="text-gray-500">Submitted At</p>

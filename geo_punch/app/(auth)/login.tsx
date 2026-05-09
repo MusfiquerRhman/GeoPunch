@@ -1,5 +1,5 @@
 import { View, TextInput, Button, StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity, TouchableWithoutFeedback, Keyboard, ScrollView } from "react-native";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 import ParallaxScrollView from "@/components/parallax-scroll-view";
 import { Image } from "expo-image";
 import { ThemedText } from "@/components/themed-text";

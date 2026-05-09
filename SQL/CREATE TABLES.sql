@@ -50,4 +50,34 @@ create table office_locations (
     office_id uuid references offices(id)
 );
 
-select * from ATTENDANCE_RECORD;
+select * from office_locations where office_id = '6be4f6e6-28ea-48bc-adc1-6becdce140aa';
+
+alter table ATTENDANCE_RECORD add column nearest_office_location uuid references office_locations(id);
+alter table ATTENDANCE_RECORD add column distance float8;
+
+SELECT *,
+(
+    6371000 * acos(
+        cos(radians($1)) *
+        cos(radians(lat)) *
+        cos(radians(lng) - radians($2)) +
+        sin(radians($1)) *
+        sin(radians(lat))
+    )
+) AS distance
+FROM offices
+ORDER BY distance
+LIMIT 1;
+
+SELECT
+    ol.LATITUDE,
+    ol.LONGITUDE,
+    ol.address,
+    o.name,
+    ol.id
+FROM office_locations as ol
+    inner join offices as o on o.id = ol.office_id
+    inner join company as c on c.id = o.company_id
+    inner join employees as e on e.company_id = c.id
+where e.id = '7e852eb6-0105-445b-8cfe-285b0f90d4ce';
+

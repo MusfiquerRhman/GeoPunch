@@ -8,15 +8,18 @@ datasource db {
 }
 
 model attendance_record {
-  id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  employee_id  String?    @db.Uuid
-  latitude     Float
-  longitude    Float
-  selfie_url   String
-  submitted_at DateTime?  @default(now()) @db.Timestamp(6)
-  status       Int?       @default(1)
-  address      String?
-  employees    employees? @relation(fields: [employee_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  id                      String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  employee_id             String?           @db.Uuid
+  latitude                Float
+  longitude               Float
+  selfie_url              String
+  submitted_at            DateTime?         @default(now()) @db.Timestamp(6)
+  status                  Int?              @default(1)
+  address                 String?
+  nearest_office_location String?           @db.Uuid
+  distance                Float?
+  employees               employees?        @relation(fields: [employee_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  office_locations        office_locations? @relation(fields: [nearest_office_location], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model departments {
@@ -66,10 +69,11 @@ model offices {
 }
 
 model office_locations {
-  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  address   String?
-  latitude  Float
-  longitude Float
-  office_id String?  @db.Uuid
-  offices   offices? @relation(fields: [office_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  id                String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  address           String?
+  latitude          Float
+  longitude         Float
+  office_id         String?             @db.Uuid
+  attendance_record attendance_record[]
+  offices           offices?            @relation(fields: [office_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }

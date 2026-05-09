@@ -13,6 +13,9 @@ interface CheckInRecord {
     submitted_at: Date; 
     status: number; 
     address: string;
+    distance: number;
+    nearest_office_address: string | null;
+    nearest_office_name: string | null;
     employee: { 
         id: string; 
         name: string; 
@@ -20,23 +23,21 @@ interface CheckInRecord {
     }
 };
 
-type TabType = "pending" | "accepted" | "rejected";
+type TabType = 0 | 1 | 2;
 
 const CheckInPage = () => {
-    const [state, setstate] = useState(0);
     const [page, setpage] = useState(0);
 
-    const [activeTab, setActiveTab] = useState<TabType>("pending");
+    const [status, setStatus] = useState<TabType>(1);
 
     const handleTabChange = (tab: TabType) => {
-        setActiveTab(tab);
+        setStatus(tab);
 
         // 👉 you can trigger API calls here if needed
         // fetchData(tab)
         console.log("Selected:", tab);
     };
     
-
     const nextPage = () => {
         setpage(page => page + 1);
     }
@@ -46,13 +47,13 @@ const CheckInPage = () => {
     }
 
     async function fetchCheckins() {
-        const res = await fetch(`/api/admin/checkin?page=${page}`);
+        const res = await fetch(`/api/admin/checkin?page=${page}&status=${status}`);
         if (!res.ok) throw new Error("Failed to fetch checkins");
         return res.json();
     }
 
     const { data, isLoading, error } = useQuery({
-        queryKey: ["checkins", page],
+        queryKey: ["checkins", page, status],
         queryFn: fetchCheckins,
     });
 
@@ -62,9 +63,9 @@ const CheckInPage = () => {
          <Wrapper heading="Punch Management">
             <div className="flex gap-2 pb-2">
                 <button
-                onClick={() => handleTabChange("pending")}
+                onClick={() => handleTabChange(1)}
                 className={`px-4 py-2 ${
-                    activeTab === "pending"
+                    status === 1
                     ? "border-b-2 border-primary-500 text-primary-500"
                     : "text-gray-500"
                 }`}
@@ -73,9 +74,9 @@ const CheckInPage = () => {
                 </button>
 
                 <button
-                onClick={() => handleTabChange("accepted")}
+                onClick={() => handleTabChange(2)}
                 className={`px-4 py-2 ${
-                    activeTab === "accepted"
+                    status === 2
                     ? "border-b-2 border-primary-500 text-primary-500"
                     : "text-gray-500"
                 }`}
@@ -84,9 +85,9 @@ const CheckInPage = () => {
                 </button>
 
                 <button
-                onClick={() => handleTabChange("rejected")}
+                onClick={() => handleTabChange(0)}
                 className={`px-4 py-2 ${
-                    activeTab === "rejected"
+                    status === 0
                     ? "border-b-2 border-primary-500 text-primary-500"
                     : "text-gray-500"
                 }`}

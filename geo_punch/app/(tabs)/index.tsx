@@ -5,13 +5,15 @@ import { Image } from 'expo-image';
 import * as Location from 'expo-location';
 import * as MediaLibrary from 'expo-media-library';
 import { useEffect, useState } from 'react';
-import { Button, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Button, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { Ionicons } from "@expo/vector-icons";
 import * as SecureStore from "expo-secure-store";
 import { API_URL } from '@/constants/API_URL';
 import { useQueryClient } from "@tanstack/react-query";
+import { useAuth } from '@/context/AuthContext';
 
+import { homeStyles } from '@/styles/home';
 
 export default function HomeScreen() {
   const queryClient = useQueryClient();
@@ -23,6 +25,13 @@ export default function HomeScreen() {
   const [cameraRef, setCameraRef] = useState<any>(null);
   const [permission, requestPermission] = useCameraPermissions();
   const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [offices, setOffices] = useState<Array<{id: string; name: string; address: string; latitude: number; longitude: number}>>([]);
+  const [nearestLocation, setnearestLocation] = useState({
+    office_name: "",
+    office_address: "",
+    distance: 0,
+    office_location_id: 0,
+  })
   
   const submitAttendance = async () => {
     const token = await SecureStore.getItemAsync("token");
@@ -48,6 +57,8 @@ export default function HomeScreen() {
     formData.append("latitude", String(location?.coords.latitude ?? ""));
     formData.append("longitude", String(location?.coords.longitude ?? ""));
     formData.append("address", addrress.map((addr) => `${addr.name}, ${addr.city}, ${addr.country}`).join('\n'));
+    formData.append("office_location_id", String(nearestLocation.office_location_id));
+    formData.append("distance", String(nearestLocation.distance));
 
     await fetch(`${API_URL}/geo_punch/record`, {
       method: "POST",
@@ -70,28 +81,62 @@ export default function HomeScreen() {
     });
   }
 
+  useEffect(() => {
+    if (!permission?.granted) {
+      requestPermission();
+    }
+  }, []);
+
+  useEffect(() => {
+    if (showCamera) {
+      requestPermission();
+    }
+  }, [showCamera]);
+
+  useEffect(() => {
+    const fetchOffices = async () => {
+      try {
+        const token = await SecureStore.getItemAsync("token");
+
+        const res = await fetch(`${API_URL}/geo_punch/get_offices`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const json = await res.json();
+
+        console.log("Offices:", json);
+
+        setOffices(json.offices || []);
+      } catch (err) {
+        console.error("Error fetching offices:", err);
+      }
+    };
+
+    fetchOffices();
+  }, []);
+
   async function getPosition() {
     try {
       let { status } = await Location.requestForegroundPermissionsAsync();
-      
+
       if (status !== 'granted') {
         setErrorMsg('Permission to access location was denied');
         return;
       }
 
-      // Wrap in try-catch to handle timeouts or disabled hardware
-      let location = await Location.getCurrentPositionAsync({
+      let currentLocation = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.Balanced,
       });
-      
-      setLocation(location);
+
+      setLocation(currentLocation);
     } catch (error) {
       setErrorMsg('Could not fetch location. Is GPS on?');
       console.error('Error fetching location:', error);
-      // You should also set an error state here to show a UI message
     }
   }
-
   const takeSelfie = async () => {
     if (!cameraRef) return;
 
@@ -112,15 +157,61 @@ export default function HomeScreen() {
     }
   };
 
-  useEffect(() => {
-    getPosition(); // initial call
+    const { logout } = useAuth();
 
-    const interval = setInterval(() => {
+    const fetchNearestOffice = async (
+      latitude: number,
+      longitude: number
+    ) => {
+      const token = await SecureStore.getItemAsync("token");
+
+      const res = await fetch(`${API_URL}/geo_punch/get_distance`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          latitude,
+          longitude,
+        }),
+      });
+
+      const json = await res.json();
+
+      if (!json.success) {
+        throw new Error(json.message || "Failed to fetch");
+      }
+
+      if (res.status === 401) {
+        await logout();
+        throw new Error("Unauthorized");
+      }
+
+      setnearestLocation(json.nearest_office);
+
+      return json.nearest_office;
+    };
+
+
+    useEffect(() => {
       getPosition();
-    }, 5000); // every 5 seconds
 
-    return () => clearInterval(interval); // cleanup
-  }, []);
+      const interval = setInterval(() => {
+        getPosition();
+      }, 15000);
+
+      return () => clearInterval(interval);
+    }, []);
+
+    useEffect(() => {
+      if (!location?.coords) return;
+
+      fetchNearestOffice(
+        location.coords.latitude,
+        location.coords.longitude
+      );
+  }, [location]);
 
   useEffect(() => {
     const getAddress = async () => {
@@ -140,16 +231,20 @@ export default function HomeScreen() {
     getAddress();
   }, [location]);
 
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
       headerImage={
         <Image
           source={require('@/assets/images/Banner.jpeg')}
-          style={styles.reactLogo}
+          style={homeStyles.reactLogo}
         />
       }>
+        
       <ThemedText type='title'>Attendence</ThemedText>
+
+           
       {photoUri && (
         <View style={{ marginTop: 20, alignItems: 'center' }}>
           <Image
@@ -203,13 +298,13 @@ export default function HomeScreen() {
               width: '90%',
               justifyContent: 'center',
             }}>
-              <View style={styles.camera_container}>
-                <TouchableOpacity style={styles.camera_button} onPress={() => setShowCamera(false)}>
+              <View style={homeStyles.camera_container}>
+                <TouchableOpacity style={homeStyles.camera_button} onPress={() => setShowCamera(false)}>
                   <Ionicons name="close" size={20} color="#000" />
                 </TouchableOpacity>
               </View>
-              <View style={styles.camera_container}>
-                <TouchableOpacity style={styles.camera_button} onPress={takeSelfie}>
+              <View style={homeStyles.camera_container}>
+                <TouchableOpacity style={homeStyles.camera_button} onPress={takeSelfie}>
                   <Ionicons name="camera" size={20} color="#000" />
                 </TouchableOpacity>
               </View>
@@ -219,8 +314,7 @@ export default function HomeScreen() {
       )}
 
       {!showCamera && !photoUri && (
-        <Button
-          title="Take Selfie"
+        <TouchableOpacity
           onPress={async () => {
             if (!permission?.granted) {
               const res = await requestPermission();
@@ -231,12 +325,26 @@ export default function HomeScreen() {
             }
             setShowCamera(true);
           }}
-        />
+          style={{
+            marginTop: 10,
+            width: '100%',
+            backgroundColor: '#007A74',
+            paddingVertical: 12,
+            borderRadius: 10,
+            alignItems: 'center',
+          }}
+        >
+          <ThemedText style={{ color: '#fff', fontWeight: '600' }}>
+            Take Selfie
+          </ThemedText>
+        </TouchableOpacity>
       )}
-      <View style={styles.container}>
+
+
+      <View style={homeStyles.container}>
         {location && location.coords.latitude && location.coords.longitude ? (
           <MapView
-            style={styles.map}
+            style={homeStyles.map}
             provider={PROVIDER_GOOGLE} // Uncomment if you want to use Google Maps on iOS
             initialRegion={{
               latitude: location.coords.latitude,
@@ -245,24 +353,74 @@ export default function HomeScreen() {
               longitudeDelta: 0.01,
             }}
           >
+            {/* User marker */}
+          <Marker
+            coordinate={{
+              latitude: location.coords.latitude,
+              longitude: location.coords.longitude,
+            }}
+            title="You are here"
+            description="Your current location"
+            pinColor="red"
+          />
+
+          {/* Office markers */}
+          {offices.map((office) => (
             <Marker
+              key={office.id}
               coordinate={{
-                latitude: location.coords.latitude,
-                longitude: location.coords.longitude,
+                latitude: office.latitude,
+                longitude: office.longitude,
               }}
-              title="You are here"
-              description="Your current location"
+              title={office.name}
+              description={office.address}
+              pinColor="blue"
             />
+          ))}
           </MapView>
         ) : (
-          <View style={styles.loading}>
+          <View style={homeStyles.loading}>
             <ThemedText>{errorMsg || 'Fetching location...'}</ThemedText>
           </View>
         )}
       </View>
+
       <View>
         <ThemedText>Approximate Location: {addrress.map((addr) => `${addr.name}, ${addr.city}, ${addr.country}`).join('\n')}</ThemedText>
       </View>
+
+      {!!nearestLocation && 
+        <View style={homeStyles.cardContainer}>
+          <Text style={homeStyles.cardLabel}>Nearest Office</Text>
+
+          <Text style={homeStyles.officeName}>
+            {nearestLocation.office_name}
+          </Text>
+
+          <View style={homeStyles.addressBox}>
+            <Text style={homeStyles.addressLabel}>Address</Text>
+
+            <Text style={homeStyles.addressText}>
+              {nearestLocation.office_address}
+            </Text>
+          </View>
+
+          <View style={homeStyles.bottomRow}>
+            <View style={homeStyles.distanceBadge}>
+              <Text style={homeStyles.distanceText}>
+                {(nearestLocation.distance / 1000).toFixed(2)} km away
+              </Text>
+            </View>
+
+            <View style={homeStyles.nearbyBadge}>
+              <Text style={homeStyles.nearbyText}>Nearby</Text>
+            </View>
+          </View>
+        </View>
+      }
+
+
+
         <TouchableOpacity
           onPress={submitAttendance}
           style={{
@@ -282,52 +440,3 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: '83%',
-    width: '100%',
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-  container: {
-    flex: 1,
-    height: 300,
-    marginVertical: 16,
-  },
-  map: {
-    width: '100%',
-    height: '100%',
-  },
-  loading: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  camera_container: {
-    justifyContent: "center",   // vertical center
-    alignItems: "center", 
-  },
-  camera_button: {
-    width: 40,
-    height: 40,
-    borderRadius: 35,           // perfect circle
-    backgroundColor: "#fff",    // white background
-    justifyContent: "center",
-    alignItems: "center",
-      // nice shadow (optional but 🔥)
-    shadowColor: "#000",
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
-    elevation: 5,
-  },
-});
