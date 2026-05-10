@@ -14,6 +14,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
             company_id: true,
             office_locations: {
                 select: {
+                    id: true,
                     address: true,
                     latitude: true,
                     longitude: true,
@@ -37,7 +38,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
         return new Response("Invalid input", { status: 400 });
     }
 
-    console.log("Updating office with data:", { id, name, company_id, locations });
+    console.log(locations);
 
     try {
         return await db.$transaction(async (tx) => {
@@ -51,27 +52,46 @@ export async function PUT(request: Request, { params }: { params: { id: string }
                 },
             });
 
-            if (locations && Array.isArray(locations)) {
-                // Delete existing locations
-                await db.office_locations.deleteMany({
-                    where: {
-                        office_id: id
-                    }
-                });
-
-                // Create new locations
-                const locationData = locations.map((loc: any) => ({
-                    latitude: loc.lat,
-                    longitude: loc.lng,
-                    address: loc.address,
+            const existingLocations = await tx.office_locations.findMany({
+                where: {
                     office_id: id
-                }));
+                }
+            });
 
-                await db.office_locations.createMany({
-                    data: locationData
+            const locationsToDelete = existingLocations.filter((loc) => !locations.some((l: any) => l.id === loc.id));
+
+            // Delete locations that are no longer in the updated list
+            for (const loc of locationsToDelete) {
+                await tx.office_locations.delete({
+                    where: { id: loc.id }
                 });
             }
 
+            if (locations && Array.isArray(locations)) {
+                for(const loc of locations) {
+                    if (loc.id) {
+                        // Update existing location
+                        await tx.office_locations.update({
+                            where: { id: loc.id },
+                            data: {
+                                address: loc.address,
+                                latitude: loc.lat,
+                                longitude: loc.lng,
+                            },
+                        });
+                    } else {
+                        // Create new location
+                        await tx.office_locations.create({
+                            data: {
+                                office_id: id,
+                                address: loc.address,
+                                latitude: loc.lat,
+                                longitude: loc.lng,
+                            },
+                        });
+                    }
+                }
+            }
             return new Response(JSON.stringify(updatedOffice), { status: 200 });
         })
     }

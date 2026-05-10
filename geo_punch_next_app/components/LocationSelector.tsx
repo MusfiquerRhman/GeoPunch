@@ -64,7 +64,7 @@ export default function MapPicker({
   onSelect?: (coords: LatLng) => void;
   coords?: LatLng | null;
 }) {
-  const [position, setPosition] = useState<LatLng | null>(null);
+  const [position, setPosition] = useState<LatLng | null>({ lat: 23.8103, lng: 90.4125 });
 
   // 🔥 Fix Leaflet icon issue (client only)
   useEffect(() => {

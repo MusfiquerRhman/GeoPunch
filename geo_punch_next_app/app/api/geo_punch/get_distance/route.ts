@@ -3,6 +3,13 @@ import { handlePrismaError } from "../../_utils/handlePrismaError";
 import { verifyToken } from "../../_utils/jwt";
 import { NextResponse } from "next/dist/server/web/spec-extension/response";
 
+interface NearestOffice {
+    distance: number;
+    office_address: string;
+    office_name: string;
+    office_location_id: number;
+}
+
 export async function POST(req: Request): Promise<Response> {
     const { latitude, longitude } = await req.json();
 
@@ -23,12 +30,7 @@ export async function POST(req: Request): Promise<Response> {
     const employee_id = payload.id; 
 
     try {
-        const distance = await db.$queryRaw<{
-            distance: number;
-            office_address: string;
-            office_name: string;
-            office_location_id: number;
-        }[]>`
+        const distance = await db.$queryRaw<NearestOffice[]>`
             SELECT
                 (
                     6371000 * acos(

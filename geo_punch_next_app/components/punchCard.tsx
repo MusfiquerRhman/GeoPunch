@@ -123,22 +123,25 @@ export default function PunchCard({ record }: { record: PunchRecord }) {
         {/* Body */}
         <div className="p-4 space-y-3 text-sm">
           <div>
-            <p className="text-gray-500">Location</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wide font-mono">Location</p>
             <p className="font-medium text-gray-800">{record?.address ?? location}</p>
+               <span className="text-xs text-gray-500 uppercase tracking-wide font-mono">
+                (LAT:{record.latitude}, LON:{record.longitude})
+              </span>
           </div>
 
-          <div className="flex justify-between">
+          {/* <div className="flex justify-between">
             <div>
               <p className="text-gray-500">Latitude</p>
               <p className="font-mono">{record.latitude}</p>
             </div>
-            <div>
+            <div className="text-right">
               <p className="text-gray-500">Longitude</p>
               <p className="font-mono">{record.longitude}</p>
             </div>
-          </div>
+          </div> */}
 
-        <div className="rounded-xl border border-gray-200 bg-white p-2">
+        <div className="py-3">
           {/* Top row: Name + Distance */}
           <div className="flex items-start justify-between gap-4">
             <div className="flex flex-col">
@@ -171,7 +174,7 @@ export default function PunchCard({ record }: { record: PunchRecord }) {
         </div>
 
           <div>
-            <p className="text-gray-500">Submitted At</p>
+            <p className="text-gray-500 uppercase tracking-wide text-xs">Submitted At</p>
             <p className="text-gray-800 font-mono">
               {formatDateTime(new Date(record.submitted_at))}
             </p>

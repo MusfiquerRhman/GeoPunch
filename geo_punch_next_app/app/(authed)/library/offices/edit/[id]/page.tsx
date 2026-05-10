@@ -13,6 +13,7 @@ type OfficeDetailsPageProps = {
 };
 
 type LocationType = {
+  id: string | null;
   address: string;
   lat: number | null;
   lng: number | null;
@@ -32,7 +33,7 @@ export default function Edit({ params }: OfficeDetailsPageProps) {
     const { register, handleSubmit, formState: { errors }, setValue } = form;
 
     const [locations, setLocations] = useState<LocationType[]>([
-        { address: "", lat: null, lng: null },
+        { id: null, address: "", lat: null, lng: null },
     ]);
 
     useEffect(() => {
@@ -47,6 +48,7 @@ export default function Edit({ params }: OfficeDetailsPageProps) {
             const res = await fetch(`/api/library/office/${id}`);
             if (res.ok) {
                 const data = await res.json();
+                setValue('db_id', data.id); // Set db_id for PUT request
                 setValue("name", data.name);
                 setValue("company_id", data.company_id);
             }
@@ -86,6 +88,8 @@ export default function Edit({ params }: OfficeDetailsPageProps) {
             locations,
         };
 
+        console.log("Submitting update with payload:", payload);
+
         const response = await fetch(`/api/library/office/${id}`, {
             method: "PUT",
             body: JSON.stringify(payload),
@@ -124,7 +128,7 @@ export default function Edit({ params }: OfficeDetailsPageProps) {
 
       // Add new location block
     const addLocation = () => {
-        setLocations([...locations, { address: "", lat: null, lng: null }]);
+        setLocations([...locations, { id: null, address: "", lat: null, lng: null }]);
     };
 
     // Remove location
@@ -152,6 +156,7 @@ export default function Edit({ params }: OfficeDetailsPageProps) {
             // 🔥 map locations
             if (data.office_locations?.length > 0) {
                 const mappedLocations = data.office_locations.map((loc: any) => ({
+                    id: loc.id,
                     address: loc.address || "",
                     lat: loc.latitude ?? null,
                     lng: loc.longitude ?? null,
@@ -238,7 +243,7 @@ export default function Edit({ params }: OfficeDetailsPageProps) {
 
               {/* Map Picker */}
               <MapPicker
-                onSelect={(coords) => updateCoords(index, coords)} coords={{ lat: loc.lat ?? 0, lng: loc.lng ?? 0 }}
+                onSelect={(coords) => updateCoords(index, coords)} coords={{ lat: loc.lat ?? 23.8103, lng: loc.lng ?? 90.4125 }}
               />
 
               {/* Debug / Display */}
