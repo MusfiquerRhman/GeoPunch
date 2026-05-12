@@ -14,8 +14,7 @@ export default function NewUsers() {
 
     const [message, setMessage] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
-    
-
+    const [isLoading, setIsLoading] = useState(false);
     const { register, handleSubmit, formState: { errors } } = form;
 
     const [departments, setDepartments] = useState([]);
@@ -46,6 +45,7 @@ export default function NewUsers() {
     }, []);
 
     const onSubmit = async (data: any) => {
+        setIsLoading(true);
         const formData = new FormData();
 
         Object.entries(data).forEach(([key, value]) => {
@@ -65,10 +65,13 @@ export default function NewUsers() {
         if (!response.ok) {
             setErrorMessage(res.message);
             setMessage("");
+            toast.error(res.message || "An error occurred while creating the user");
+            setIsLoading(false);
             return;
         }
 
         setMessage("User created successfully");
+        setIsLoading(false);
     };
 
     return (
@@ -174,6 +177,7 @@ export default function NewUsers() {
                     />
                 </div>
                 <button type="submit"
+                    disabled={isLoading}
                     className="bg-primary w-full p-2 rounded-md text-white cursor-pointer"
                 >
                     Submit

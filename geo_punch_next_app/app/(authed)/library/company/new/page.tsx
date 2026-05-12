@@ -14,10 +14,11 @@ export default function NewCompany() {
 
     const [message, setMessage] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
-
+    const [isLoading, setIsLoading] = useState(false);
     const { register, handleSubmit, formState: { errors } } = form;
 
     const onSubmit = async (data: any) => {
+        setIsLoading(true);
         const formData = new FormData();
 
         Object.entries(data).forEach(([key, value]) => {
@@ -38,11 +39,14 @@ export default function NewCompany() {
             setErrorMessage(res.message); 
             toast.error(res.message || "An error occurred while creating the office");
             setMessage("");
+            setIsLoading(false);
             return;
         }
 
         setMessage("Company created successfully");
         toast.success("Company created successfully");
+        setErrorMessage("");
+        setIsLoading(false);
     };
 
     return (
@@ -61,8 +65,9 @@ export default function NewCompany() {
                     register={register}
                     errors={form.formState.errors.name?.message}
                 />
-                <button type="submit" className="bg-primary text-white px-4 py-2 rounded-md">
-                    Create Company
+                <button type="submit" className="bg-primary text-white px-4 py-2 rounded-md" 
+                    disabled={isLoading}>
+                    {isLoading ? "Creating..." : "Create Company"}
                 </button>
             </form>
         </Wrapper>

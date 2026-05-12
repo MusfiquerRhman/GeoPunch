@@ -22,7 +22,7 @@ export default function NewOffice() {
   const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [companies, setCompanies] = useState([]);
-
+  const [isLoading, setIsLoading] = useState(false);
   const [locations, setLocations] = useState<LocationType[]>([
     { address: "", lat: null, lng: null },
   ]);
@@ -63,11 +63,13 @@ export default function NewOffice() {
   };
 
   const onSubmit = async (data: any) => {
+    setIsLoading(true);
     setMessage("");
 
     if (!locations.length) {
         setErrorMessage("At least one location is required");
         toast.error("At least one location is required");
+        setIsLoading(false);
         return;
     }
 
@@ -77,12 +79,14 @@ export default function NewOffice() {
         if (!loc.address || loc.address.trim() === "") {
             setErrorMessage(`Location ${i + 1}: Address is required`);
             toast.error(`Location ${i + 1}: Address is required`);
+            setIsLoading(false);
             return;
         }
 
         if (loc.lat === null || loc.lng === null || isNaN(loc.lat) || isNaN(loc.lng)) {
             setErrorMessage(`Location ${i + 1}: Please select a valid position on the map`);
             toast.error(`Location ${i + 1}: Please select a valid position on the map`);
+            setIsLoading(false);
             return;
         }
     }
@@ -104,23 +108,23 @@ export default function NewOffice() {
       },
     });
 
-        const res = await response.json(); 
+    const res = await response.json(); 
 
-        if (!response.ok) {
-            setErrorMessage(res.message); 
-            toast.error(res.message || "An error occurred while creating the office");
-            toast.error(res.message || "An error occurred while creating the office");
-            setMessage("");
-            return;
-        }
+    if (!response.ok) {
+        setErrorMessage(res.message); 
+        toast.error(res.message || "An error occurred while creating the office");
+        setMessage("");
+        return;
+    }
 
-        setMessage("Company created successfully");
-        toast.success("Company created successfully");
+    setMessage("Company created successfully");
+    toast.success("Company created successfully");
+    setIsLoading(false);
   };
 
-    useEffect(() => {
-      console.log(form.formState.errors);
-    }, [form.formState.errors]);
+  useEffect(() => {
+    console.log(form.formState.errors);
+  }, [form.formState.errors]);
 
   return (
     <Wrapper heading="Office Management">
@@ -222,9 +226,10 @@ export default function NewOffice() {
         {/* Submit */}
         <button
           type="submit"
+          disabled={isLoading}
           className="bg-primary text-white px-4 py-2 rounded-md"
         >
-          Create Office
+          {isLoading ? "Creating..." : "Create Office"}
         </button>
       </form>
     </Wrapper>

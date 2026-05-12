@@ -14,10 +14,11 @@ export default function NewDepartment() {
 
     const [message, setMessage] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
-
+    const [isLoading, setIsLoading] = useState(false);
     const { register, handleSubmit, formState: { errors } } = form;
 
     const onSubmit = async (data: any) => {
+        setIsLoading(true);
         const formData = new FormData();
 
         Object.entries(data).forEach(([key, value]) => {
@@ -38,11 +39,13 @@ export default function NewDepartment() {
             setErrorMessage(res.message); 
             toast.error(res.message || "An error occurred while creating the office");
             setMessage("");
+            setIsLoading(false);
             return;
         }
 
         setMessage("Department created successfully");
         toast.success("Department created successfully");
+        setIsLoading(false);
     };
 
     return (
@@ -61,8 +64,8 @@ export default function NewDepartment() {
                     register={register}
                     errors={form.formState.errors.department_name}
                 />
-                <button type="submit" className="bg-primary text-white px-4 py-2 rounded-md">
-                    Create Department
+                <button type="submit" className="bg-primary text-white px-4 py-2 rounded-md" disabled={isLoading}>
+                    {isLoading ? "Creating..." : "Create Department"}
                 </button>
             </form>
         </Wrapper>

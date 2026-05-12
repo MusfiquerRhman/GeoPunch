@@ -14,10 +14,11 @@ export default function NewDesignation() {
 
     const [message, setMessage] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
-
+    const [isLoading, setIsLoading] = useState(false);
     const { register, handleSubmit, formState: { errors } } = form;
 
     const onSubmit = async (data: any) => {
+        setIsLoading(true);
         const formData = new FormData();
 
         Object.entries(data).forEach(([key, value]) => {
@@ -38,11 +39,13 @@ export default function NewDesignation() {
             setErrorMessage(res.message); 
             toast.error(res.message || "An error occurred while creating the office");
             setMessage("");
+            setIsLoading(false);
             return;
         }
 
         setMessage("Designation created successfully");
         toast.success("Designation created successfully");
+        setIsLoading(false);
 
     };
 
@@ -62,8 +65,8 @@ export default function NewDesignation() {
                     register={register}
                     errors={form.formState.errors.designation}
                 />
-                <button type="submit" className="bg-primary text-white px-4 py-2 rounded-md">
-                    Create Designation
+                <button type="submit" className="bg-primary text-white px-4 py-2 rounded-md" disabled={isLoading}>
+                    {isLoading ? "Creating..." : "Create Designation"}
                 </button>
             </form>
         </Wrapper>
