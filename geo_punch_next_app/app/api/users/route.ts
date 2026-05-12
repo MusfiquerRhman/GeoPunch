@@ -5,6 +5,7 @@ import { handlePrismaError } from "../_utils/handlePrismaError";
 export async function GET(request: Request): Promise<Response> {
   const { searchParams } = new URL(request.url);
   const page = parseInt(searchParams.get("page") || "0");
+  const search = searchParams.get("search") || "";
 
   const data = await db.employees.findMany({
     skip: page * 10,
@@ -36,9 +37,26 @@ export async function GET(request: Request): Promise<Response> {
       email: true,
       is_admin: true,
     },
+    where: {
+      OR: [
+        { name: { contains: search, mode: "insensitive" } },
+        { email: { contains: search, mode: "insensitive" } },
+        { id_card_no: { contains: search, mode: "insensitive" } },
+        { phone_no: { contains: search, mode: "insensitive" } },
+      ]
+    },
   });
 
-  const count = await db.employees.count();
+  const count = await db.employees.count({
+    where: {
+      OR: [
+        { name: { contains: search, mode: "insensitive" } },
+        { email: { contains: search, mode: "insensitive" } },
+        { id_card_no: { contains: search, mode: "insensitive" } },
+        { phone_no: { contains: search, mode: "insensitive" } },
+      ]
+    },
+  });
 
 
   const users = data.map((user) => ({

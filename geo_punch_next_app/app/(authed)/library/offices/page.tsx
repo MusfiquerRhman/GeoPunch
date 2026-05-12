@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { deleteIcon, editIcon } from "@/assets";
 import Image from "next/image";
+import useDebouncedValue from "@/hooks/useDebouncedValue";
 
 export default function Officepage() {
     const router = useRouter();
@@ -20,7 +21,10 @@ export default function Officepage() {
         count: number;
     }>({ offices: [], count: 0 });
 
+    const [search, setsearch] = useState('');
     const [page, setpage] = useState(0);
+
+    const debouncedSearch = useDebouncedValue(search, 500);
 
     const nextPage = () => {
         setpage(page => page + 1);
@@ -30,12 +34,22 @@ export default function Officepage() {
         setpage(page => page - 1);
     }
 
+    const fetchOffices = async () => {
+        try {
+            const res = await fetch(`/api/library/office?page=${page}&search=${encodeURIComponent(debouncedSearch)}`);
+            if (res.ok) {
+                const data = await res.json();
+                setOffices(data);
+            }
+        }
+        catch (err) {
+            console.error("Error fetching offices:", err);
+        }
+    };
+
     useEffect(() => {
-        fetch(`/api/library/office?page=${page}`).then((res) => res.json()).then((data) => {
-            setOffices(data);
-        })
-        .catch((err) => console.error(err));
-    }, [page]);
+        fetchOffices();
+    }, [page, debouncedSearch]);
 
     const handleDelete = async (id: number) => {
         if (!confirm("Are you sure you want to delete this office?")) {
@@ -63,6 +77,10 @@ export default function Officepage() {
         }
     }
 
+    useEffect(() => {
+        console.log(offices);
+    }, [offices]);
+
     return (
         <Wrapper heading="Office Management">
             <div className="flex flex-row gap-8 w-full">
@@ -70,12 +88,11 @@ export default function Officepage() {
                 <div className="flex mb-4 flex-1">
                     <input
                         type="text"
-                        placeholder="Search offices..."
+                        placeholder="Search offices, address and locations..."
                         className="border-2 border-primary w-full max-w-[350] px-2 py-1 rounded-md"
+                        value={search}
+                        onChange={(e) => setsearch(e.target.value)}
                     />
-                    <button className="ml-2 bg-primary text-white px-4 py-1 rounded-md">
-                        Search
-                    </button>
                 </div>
                 {/* New Office Button */}
                 <div className="mb-4 flex-1 items-end flex justify-end">

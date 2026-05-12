@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { deleteIcon, editIcon } from "@/assets";
 import Image from "next/image";
+import useDebouncedValue from "@/hooks/useDebouncedValue";
 
 export default function Home() {
     const router = useRouter();
@@ -24,6 +25,7 @@ export default function Home() {
         count: number;
     } | null>(null);
 
+    const [search, setsearch] = useState('');
     const [page, setpage] = useState(0);
 
     const nextPage = () => {
@@ -34,12 +36,24 @@ export default function Home() {
         setpage(page => page - 1);
     }
 
+    const debouncedSearch = useDebouncedValue(search, 500);
+
+    const fetchUsers = async () => {
+        try {
+            const res = await fetch(`/api/users?page=${page}&search=${encodeURIComponent(debouncedSearch)}`);
+            if (res.ok) {                
+                const data = await res.json();
+                setusers(data);
+            }
+        }
+        catch (err) {
+            console.error("Error fetching users:", err);
+        }
+    };
+
     useEffect(() => {
-        fetch(`/api/users?page=${page}`).then((res) => res.json()).then((data) => {
-            setusers(data);
-        })
-        .catch((err) => console.error(err));
-    }, [page]);
+        fetchUsers();
+    }, [page, debouncedSearch]);
 
     return (
         <Wrapper heading="User Management">
@@ -48,12 +62,11 @@ export default function Home() {
                 <div className="flex mb-4 flex-1">
                     <input
                         type="text"
-                        placeholder="Search users..."
+                        placeholder="Search users name, email, id card and phone..."
                         className="border-2 border-primary w-full max-w-[350] px-2 py-1 rounded-md"
+                        value={search}
+                        onChange={(e) => setsearch(e.target.value)}
                     />
-                    <button className="ml-2 bg-primary text-white px-4 py-1 rounded-md">
-                        Search
-                    </button>
                 </div>
                 {/* New User Button */}
                 <div className="mb-4 flex-1 items-end flex justify-end">

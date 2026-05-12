@@ -4,22 +4,86 @@ import { handlePrismaError } from "../../_utils/handlePrismaError";
 export async function GET(request: Request): Promise<Response> {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "0");
-    
+    const search = searchParams.get("search") || "";
+
     const offices = await db.offices.findMany({
         skip: page * 10,
         take: 10,
+
         select: {
             id: true,
             name: true,
             company: {
                 select: {
-                    name: true
-                }
-            }
-        }
+                    name: true,
+                },
+            },
+        },
+
+        where: {
+            OR: [
+                {
+                    name: {
+                        contains: search,
+                        mode: "insensitive",
+                    },
+                },
+
+                {
+                    company: {
+                        name: {
+                            contains: search,
+                            mode: "insensitive",
+                        },
+                    },
+                },
+
+                {
+                    office_locations: {
+                        some: {
+                            address: {
+                                contains: search,
+                                mode: "insensitive",
+                            },
+                        },
+                    },
+                },
+            ],
+        },
     });
 
-    const count = await db.offices.count();
+    const count = await db.offices.count({
+        where: {
+            OR: [
+                {
+                    name: {
+                        contains: search,
+                        mode: "insensitive",
+                    },
+                },
+
+                {
+                    company: {
+                        name: {
+                            contains: search,
+                            mode: "insensitive",
+                        },
+                    },
+                },
+
+                {
+                    office_locations: {
+                        some: {
+                            address: {
+                                contains: search,
+                                mode: "insensitive",
+                            },
+                        },
+                    },
+                },
+            ],
+        },
+    });
 
     return Response.json({ offices, count });
 }

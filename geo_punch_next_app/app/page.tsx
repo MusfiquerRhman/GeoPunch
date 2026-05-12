@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 
 export default function Home() {
-  redirect(`/library/departments/`);
+  redirect(`/attendance/check-in`);
 
   return (
     <main>

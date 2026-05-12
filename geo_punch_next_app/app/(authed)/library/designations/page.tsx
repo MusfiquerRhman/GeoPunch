@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { deleteIcon, editIcon } from "@/assets";
 import Image from "next/image";
 import { toast } from "sonner";
+import useDebouncedValue from "@/hooks/useDebouncedValue";
 
 export default function DesignationsPage() {
     const router = useRouter();
@@ -15,6 +16,7 @@ export default function DesignationsPage() {
         count: number;
     }>({ designations: [], count: 0 });
 
+    const [search, setsearch] = useState('');
     const [page, setpage] = useState(0);
 
     const nextPage = () => {
@@ -25,15 +27,24 @@ export default function DesignationsPage() {
         setpage(page => page - 1);
     }
 
+    const debouncedSearch = useDebouncedValue(search, 500);
+
+    const fetchDesignations = async () => {
+        try {
+            const res = await fetch(`/api/library/designation?page=${page}&search=${encodeURIComponent(debouncedSearch)}`);
+            if (res.ok) {                
+                const data = await res.json();
+                setDesignations(data);
+            }
+        }
+        catch (err) {
+            console.error("Error fetching designations:", err);
+        }
+    };
+
     useEffect(() => {
-        fetch(`/api/library/designation?page=${page}`).then((res) => res.json()).then((data) => {
-            setDesignations({
-                designations: data?.designations ?? [],
-                count: data?.count ?? 0,
-            });
-        })
-        .catch((err) => console.error(err));
-    }, [page]);
+        fetchDesignations();
+    }, [page, debouncedSearch]);
 
     const handleDelete = async (id: number) => {
         if (!confirm("Are you sure you want to delete this designation?")) {
@@ -68,13 +79,12 @@ export default function DesignationsPage() {
                 {/* Search Bar */}
                 <div className="flex mb-4 flex-1">
                     <input
-                        type="text"
+                        value={search}
+                        onChange={(e) => setsearch(e.target.value)}
+                        type="search"
                         placeholder="Search designations..."
                         className="border-2 border-primary w-full max-w-[350] px-2 py-1 rounded-md"
-                    />
-                    <button className="ml-2 bg-primary text-white px-4 py-1 rounded-md">
-                        Search
-                    </button>
+                    />     
                 </div>
                 {/* New Designation Button */}
                 <div className="mb-4 flex-1 items-end flex justify-end">

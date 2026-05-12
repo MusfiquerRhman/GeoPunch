@@ -4,13 +4,27 @@ import { handlePrismaError } from "../../_utils/handlePrismaError";
 export async function GET(request: Request): Promise<Response> {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "0");
+    const search = searchParams.get("search") || "";
 
     const departments = await db.departments.findMany({
         skip: page * 10,
         take: 10,
+        where: {
+            department_name: {
+                contains: search,
+                mode: "insensitive",
+            },
+        },
     });
 
-    const count = await db.departments.count();
+    const count = await db.departments.count({
+        where: {
+            department_name: {
+                contains: search,
+                mode: "insensitive",
+            },
+        },
+    });
 
     return Response.json({ departments, count });
 }
