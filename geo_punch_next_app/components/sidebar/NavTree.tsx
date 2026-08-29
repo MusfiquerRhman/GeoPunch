@@ -104,6 +104,7 @@ const NavTree = () => {
 
         if(res.ok) {
             // Redirect to login page or show a success message
+            localStorage.removeItem("token");
             window.location.href = "/login";
         } else {
             // Handle error case

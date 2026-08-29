@@ -32,6 +32,7 @@ export function proxy(req: NextRequest) {
 
   try {
     verifyToken(token);
+    console.log("Token verified successfully for request to:", req.nextUrl.pathname);
     return NextResponse.next();
   } catch {
     return handleUnauthorized(req);
@@ -39,6 +40,7 @@ export function proxy(req: NextRequest) {
 }
 
 function handleUnauthorized(req: NextRequest) {
+  console.log("Unauthorized access attempt to:", req.nextUrl.pathname);
   if (req.nextUrl.pathname.startsWith("/api")) {
     return new Response(
       JSON.stringify({ message: "Unauthorized" }),
@@ -46,5 +48,5 @@ function handleUnauthorized(req: NextRequest) {
     );
   }
 
-  return NextResponse.redirect(new URL("/login", req.url));
+  // return NextResponse.redirect(new URL("/login", req.url));
 }
