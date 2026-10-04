@@ -1,6 +1,5 @@
-import { Redirect, Stack } from "expo-router";
-import { ThemeProvider } from "@react-navigation/native";
-import { DarkTheme, DefaultTheme } from "@react-navigation/native";
+import { Redirect, Stack, useSegments } from "expo-router";
+import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { AuthProvider, useAuth } from "../context/AuthContext";
 import { ActivityIndicator, View } from "react-native";
@@ -11,6 +10,7 @@ const queryClient = new QueryClient();
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
   const { token, loading } = useAuth();
+  const segments = useSegments();
 
   if (loading) {
     return (
@@ -22,14 +22,14 @@ function RootLayoutNav() {
 
 
 
+  const inAuthGroup = segments[0] === "(auth)";
+  const inTabsGroup = segments[0] === "(tabs)";
+
+  if (token && !inTabsGroup) return <Redirect href="/(tabs)" />;
+  if (!token && !inAuthGroup) return <Redirect href="/(auth)/login" />;
+
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      {token ? (
-        <Redirect href="/(tabs)" />
-      ) : (
-        <Redirect href="/(auth)/login" />
-      )}
-
       <Stack screenOptions={{ headerShown: false }} />
     </ThemeProvider>
   );
@@ -37,10 +37,10 @@ function RootLayoutNav() {
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
         <RootLayoutNav />
-      </QueryClientProvider>
-    </AuthProvider>
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }

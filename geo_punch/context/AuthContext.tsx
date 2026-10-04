@@ -1,9 +1,10 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import * as SecureStore from "expo-secure-store";
 import { jwtDecode } from "jwt-decode";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface JwtPayload {
-  exp: number;
+  exp?: number;
 }
 
 interface AuthContextType {
@@ -16,6 +17,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const queryClient = useQueryClient();
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -23,10 +25,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const load = async () => {
       try {
-        const stored = await SecureStore.getItemAsync("token");
-        setToken(stored);
-      } catch (err) {
-        console.log("Failed to load token", err);
+        setToken(await SecureStore.getItemAsync("token"));
+      } catch {
+        setToken(null);
       } finally {
         setLoading(false);
       }
@@ -35,15 +36,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     load();
   }, []);
 
-  const login = async (t: string) => {
+  const login = useCallback(async (t: string) => {
+    if (!t) throw new Error("The server did not return a sign-in token.");
+    await queryClient.clear();
     await SecureStore.setItemAsync("token", t);
     setToken(t);
-  };
+  }, [queryClient]);
 
-  const logout = async () => {
-    await SecureStore.deleteItemAsync("token");
-    setToken(null);
-  };
+  const logout = useCallback(async () => {
+    try {
+      await SecureStore.deleteItemAsync("token");
+    } catch {
+      // Clear the in-memory session even if the platform secure store is unavailable.
+    } finally {
+      setToken(null);
+      await queryClient.clear();
+    }
+  }, [queryClient]);
 
   // Auto logout on expiry
   useEffect(() => {
@@ -53,26 +62,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     try {
       const decoded = jwtDecode<JwtPayload>(token);
-      const expiryTime = decoded.exp * 1000;
+      if (!Number.isFinite(decoded.exp)) {
+        void logout();
+        return;
+      }
+
+      const expiryTime = decoded.exp! * 1000;
       const timeout = expiryTime - Date.now();
 
       if (timeout <= 0) {
-        logout();
+        void logout();
         return;
       }
 
       timer = setTimeout(() => {
-        logout();
+        void logout();
       }, timeout);
-    } catch (err) {
-      console.log("Invalid token, logging out");
-      logout();
+    } catch {
+      void logout();
     }
 
     return () => {
       if (timer) clearTimeout(timer);
     };
-  }, [token]);
+  }, [logout, token]);
 
   return (
     <AuthContext.Provider value={{ token, login, logout, loading }}>

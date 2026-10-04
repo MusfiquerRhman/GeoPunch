@@ -1,91 +1,87 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, Image, StyleSheet } from "react-native";
+import { useEffect, useState } from "react";
+import { Image, StyleSheet, Text, View } from "react-native";
 import * as Location from "expo-location";
-import { API_URL } from '@/constants/API_URL';
-import { ThemedText } from "./themed-text";
 
-type Props = {
-  item: {
-    id: string;
-    selfie_url: string;
-    latitude: number;
-    longitude: number;
-    submitted_at: string;
-    status: number;
-  };
-  baseUrl: string;
+type AttendanceRecord = {
+  id: string | number;
+  selfie_url: string;
+  latitude: number;
+  longitude: number;
+  submitted_at: string;
+  status: number;
 };
 
-export async function getAddress(lat: number, lng: number) {
+type Props = {
+  item: AttendanceRecord;
+  baseUrl: string;
+  token: string | null;
+};
+
+async function getAddress(latitude: number, longitude: number) {
   try {
-    const res = await Location.reverseGeocodeAsync({
-      latitude: lat,
-      longitude: lng,
-    });
+    const result = await Location.reverseGeocodeAsync({ latitude, longitude });
+    const place = result[0];
+    if (!place) return "Unknown location";
 
-    if (res.length > 0) {
-      const place = res[0];
-      return `${place.name ?? ""} ${place.street ?? ""}, ${place.city ?? ""}, ${place.country ?? ""}`;
-    }
-
-    return "Unknown location";
-  } catch (err) {
-    console.log("Reverse geocode error:", err);
-    return "Location not found";
+    return [place.name, place.street, place.city, place.country]
+      .filter(Boolean)
+      .join(", ");
+  } catch {
+    return "Location unavailable";
   }
 }
 
+function statusLabel(status: number) {
+  if (status === 1) return { label: "Pending", color: "#a15c00" };
+  if (status === 2) return { label: "Approved", color: "#18794e" };
+  return { label: "Rejected", color: "#b42318" };
+}
 
-export default function AttendanceCard({ item, baseUrl }: Props) {
+export default function AttendanceCard({ item, baseUrl, token }: Props) {
   const [address, setAddress] = useState("Loading location...");
-
-  console.log("image url:", `${baseUrl}${item.selfie_url}`);
+  const status = statusLabel(item.status);
+  const submittedAt = new Date(item.submitted_at);
 
   useEffect(() => {
-    (async () => {
-      const addr = await getAddress(item.latitude, item.longitude);
-      setAddress(addr);
-    })();
+    let active = true;
+    void getAddress(item.latitude, item.longitude).then((value) => {
+      if (active) setAddress(value);
+    });
+
+    return () => {
+      active = false;
+    };
   }, [item.latitude, item.longitude]);
 
   return (
     <View style={styles.card}>
-      
-      {/* LEFT: IMAGE */}
       <Image
-        source={{ uri: `${baseUrl}${item.selfie_url}` }}
+        source={{
+          uri: `${baseUrl}${item.selfie_url}`,
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        }}
         style={styles.image}
+        accessibilityLabel="Attendance selfie"
       />
 
-      {/* RIGHT: INFO */}
       <View style={styles.info}>
-        <Text style={{
-            ...styles.title,
-            color: item.status === 1 ? '#FFA500' : item.status === 2 ? '#4CAF50' : '#F44336',
-        }}>{item.status === 1 ? 'Pending' : item.status === 2 ? 'Approved' : 'Rejected'}</Text>
-
+        <Text style={[styles.title, { color: status.color }]}>{status.label}</Text>
+        <Text style={styles.text}>📍 {address}</Text>
         <Text style={styles.text}>
-          📍 {address}
+          🕒 {Number.isNaN(submittedAt.getTime()) ? "Time unavailable" : submittedAt.toLocaleString()}
         </Text>
-
-        <Text style={styles.text}>
-          🕒 {new Date(item.submitted_at).toLocaleString()}
-        </Text>
-
         <Text style={styles.id}>ID: {item.id}</Text>
       </View>
-
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   card: {
     flexDirection: "row",
     backgroundColor: "#fff",
     padding: 12,
-    marginVertical: 2,
+    marginVertical: 4,
     marginHorizontal: 10,
     borderRadius: 14,
     shadowColor: "#000",
@@ -94,31 +90,26 @@ const styles = StyleSheet.create({
     elevation: 3,
     alignItems: "center",
   },
-
   image: {
     width: 90,
     height: 90,
     borderRadius: 12,
     backgroundColor: "#eee",
   },
-
   info: {
     flex: 1,
     marginLeft: 12,
   },
-
   title: {
     fontSize: 16,
     fontWeight: "700",
     marginBottom: 4,
   },
-
   text: {
     fontSize: 13,
     color: "#444",
     marginTop: 2,
   },
-
   id: {
     marginTop: 6,
     fontSize: 11,

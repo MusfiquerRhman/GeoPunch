@@ -1,10 +1,9 @@
-import { View, TextInput, Button, StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity, TouchableWithoutFeedback, Keyboard, ScrollView } from "react-native";
+import { View, TextInput, StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity, TouchableWithoutFeedback, Keyboard, ScrollView, ActivityIndicator } from "react-native";
 import { useAuth } from "../../context/AuthContext";
-import ParallaxScrollView from "@/components/parallax-scroll-view";
 import { Image } from "expo-image";
 import { ThemedText } from "@/components/themed-text";
 import { useState } from "react";
-import { API_URL } from "@/constants/API_URL";
+import { apiRequest } from "@/constants/apiRequest";
 
 export default function Login() {
     const { login } = useAuth();
@@ -12,29 +11,28 @@ export default function Login() {
     const [idCard, setIdCard] = useState("");
     const [password, setPassword] = useState("");
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleLogin = async () => {
-        const res = await fetch(`${API_URL}/auth/geo_punch/login`, {
+        if (isSubmitting) return;
+        if (!idCard.trim() || !password) {
+          setErrorMessage("Enter your ID card number and password.");
+          return;
+        }
+
+        setIsSubmitting(true);
+        setErrorMessage(null);
+        try {
+          const result = await apiRequest<{ token: string }>("/auth/geo_punch/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                id_card_no: idCard,
-                password: password,
-            }),
-        }).catch((error) => {
-            console.error("Network error during login:", error);
-            alert("Network error. Please check your connection and try again.");
-        });
-
-        if (!res) return; // Exit if there was a network error
-
-        const data = await res.json();
-
-        if (res.ok) {
-          await login(data.token); // 🔥 triggers route switch
-        } else {
-          console.error("Login failed:", data.error);
-          setErrorMessage(data.error || "An unknown error occurred.");
+            body: JSON.stringify({ id_card_no: idCard.trim(), password }),
+          });
+          await login(result.token);
+        } catch (error) {
+          setErrorMessage(error instanceof Error ? error.message : "Could not sign in. Please try again.");
+        } finally {
+          setIsSubmitting(false);
         }
     };
 
@@ -67,7 +65,9 @@ export default function Login() {
             <ThemedText style={styles.label}>Id Card No</ThemedText>
             <TextInput
               value={idCard}
-              onChangeText={setIdCard}
+              onChangeText={(value) => { setIdCard(value); setErrorMessage(null); }}
+              autoCapitalize="none"
+              autoCorrect={false}
               placeholder="Enter your id card no"
               style={styles.input}
               returnKeyType="next"
@@ -76,15 +76,15 @@ export default function Login() {
             <ThemedText style={styles.label}>Password</ThemedText>
             <TextInput
               value={password}
-              onChangeText={setPassword}
+              onChangeText={(value) => { setPassword(value); setErrorMessage(null); }}
               placeholder="Enter your password"
               secureTextEntry
               style={styles.input}
               returnKeyType="done"
             />
 
-            <TouchableOpacity style={styles.button} onPress={handleLogin}>
-              <ThemedText style={styles.buttonText}>Login</ThemedText>
+            <TouchableOpacity style={[styles.button, isSubmitting && { opacity: 0.7 }]} onPress={() => void handleLogin()} disabled={isSubmitting}>
+              {isSubmitting ? <ActivityIndicator color="#fff" /> : <ThemedText style={styles.buttonText}>Login</ThemedText>}
             </TouchableOpacity>
           </View>
         </ScrollView>

@@ -12,7 +12,10 @@
       "supportsTablet": true
     },
     "android": {
-      "usesCleartextTraffic": true,
+      "blockedPermissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -40,7 +43,24 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow GeoPunch to take an attendance selfie.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow GeoPunch to verify your attendance location."
+        }
+      ],
+      "expo-secure-store",
+      "expo-system-ui",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,

@@ -1,139 +1,137 @@
-import ParallaxScrollView from "@/components/parallax-scroll-view";
-import { ThemedText } from "@/components/themed-text";
-import { Fonts } from "@/constants/theme";
+import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
-import { useAuth } from "../../context/AuthContext";
-import { API_URL } from "@/constants/API_URL";
-import * as SecureStore from "expo-secure-store";
-import { useQuery } from "@tanstack/react-query";
+
+import ParallaxScrollView from "@/components/parallax-scroll-view";
+import { ThemedText } from "@/components/themed-text";
+import { apiRequest } from "@/constants/apiRequest";
+import { Fonts } from "@/constants/theme";
+import { useAuth } from "@/context/AuthContext";
 
 interface User {
-    name: string;
-    email: string | null;
-    id_card_no: string | null;
-    department: string | null;
-    designation: string | null;
-    phone_no: string | null;
-};
+  name: string;
+  email: string | null;
+  id_card_no: string | null;
+  department: string | null;
+  designation: string | null;
+  phone_no: string | null;
+}
 
-const Row = ({ label, value }: { label: string; value?: string | null }) => (
-  <View style={{ flexDirection: "row", marginBottom: 4 }}>
-    <ThemedText style={{ fontWeight: "500", width: 110 }}>
-      {label}:
-    </ThemedText>
-    <ThemedText>{value ?? "N/A"}</ThemedText>
-  </View>
-);
+function ProfileRow({ label, value }: { label: string; value?: string | null }) {
+  return (
+    <View style={styles.row}>
+      <ThemedText style={styles.label}>{label}:</ThemedText>
+      <ThemedText style={styles.value}>{value || "N/A"}</ThemedText>
+    </View>
+  );
+}
 
 export default function ProfileScreen() {
-    const { logout } = useAuth();
-    
-    const fetchUser = async () => {
-        const token = await SecureStore.getItemAsync("token");
+  const { token, logout } = useAuth();
 
-        const res = await fetch(`${API_URL}/geo_punch/users`, {
-            method: "GET",
-            headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-            },
-        });
+  const { data: user, isLoading, error, refetch } = useQuery({
+    queryKey: ["user"],
+    enabled: Boolean(token),
+    queryFn: async () => {
+      const result = await apiRequest<{ data: User | null }>("/geo_punch/users", {
+        token,
+        onUnauthorized: logout,
+      });
+      if (!result.data) throw new Error("Employee profile was not found.");
+      return result.data;
+    },
+  });
 
-        const json = await res.json();
+  return (
+    <ParallaxScrollView
+      headerBackgroundColor={{ light: "#D0D0D0", dark: "#353636" }}
+      headerImage={<Image source={require("@/assets/images/Banner.jpeg")} style={styles.reactLogo} />}
+    >
+      <ThemedText type="title" style={{ fontFamily: Fonts.rounded }}>
+        Your profile
+      </ThemedText>
 
-        if (!json.success) {
-            throw new Error(json.message || "Failed to fetch");
-        }
-        if (res.status === 401) {
-            await logout();
-            throw new Error("Unauthorized");
-        }
+      {isLoading ? <ThemedText>Loading profile...</ThemedText> : null}
+      {error ? (
+        <View>
+          <ThemedText>Could not load profile: {error.message}</ThemedText>
+          <TouchableOpacity onPress={() => void refetch()} style={styles.retryButton}>
+            <ThemedText style={styles.retryText}>Retry</ThemedText>
+          </TouchableOpacity>
+        </View>
+      ) : null}
 
-        return json.data;
-    };
+      {user ? (
+        <View style={styles.card}>
+          <ThemedText style={styles.name}>{user.name}</ThemedText>
+          <ProfileRow label="Email" value={user.email} />
+          <ProfileRow label="ID card" value={user.id_card_no} />
+          <ProfileRow label="Department" value={user.department} />
+          <ProfileRow label="Designation" value={user.designation} />
+          <ProfileRow label="Phone" value={user.phone_no} />
+        </View>
+      ) : null}
 
-    const {
-        data: user = null,
-    } = useQuery<User | null>({
-        queryKey: ["user"],
-        queryFn: fetchUser,
-    });
-
-    return (
-         <ParallaxScrollView
-              headerBackgroundColor={{ light: "#D0D0D0", dark: "#353636" }}
-              headerImage={
-                <Image
-                  source={require("@/assets/images/Banner.jpeg")}
-                  style={styles.reactLogo}
-                />
-              }
-            >
-            <View>
-                <ThemedText
-                type="title"
-                style={{ fontFamily: Fonts.rounded }}
-                >
-                    Your Profile
-                </ThemedText>
-            </View>
-
-            <View
-                style={{
-                backgroundColor: "#fff",
-                padding: 16,
-                borderRadius: 16,
-                marginBottom: 12,
-                elevation: 3,
-                }}
-            >
-                <ThemedText style={{ fontSize: 24, fontWeight: "600", marginBottom: 10 }}>
-                    {user?.name}
-                </ThemedText>
-
-                <Row label="Email" value={user?.email} />
-                <Row label="ID Card" value={user?.id_card_no} />
-                <Row label="Department" value={user?.department} />
-                <Row label="Designation" value={user?.designation} />
-                <Row label="Phone" value={user?.phone_no} />
-            </View>
-
-            <TouchableOpacity
-              onPress={logout}
-              style={{
-                marginTop: 10,
-                width: '100%',
-                backgroundColor: '#FF0000',
-                paddingVertical: 12,
-                borderRadius: 10,
-                alignItems: 'center',
-              }}
-            >
-              <ThemedText style={{ color: '#fff', fontWeight: '600' }}>
-                Log Out
-              </ThemedText>
-            </TouchableOpacity>
-        </ParallaxScrollView>
-    );
+      <TouchableOpacity onPress={() => void logout()} style={styles.logoutButton}>
+        <ThemedText style={styles.logoutText}>Log out</ThemedText>
+      </TouchableOpacity>
+    </ParallaxScrollView>
+  );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
-  },  
   reactLogo: {
-    height: '83%',
-    width: '100%',
+    height: "83%",
+    width: "100%",
     bottom: 0,
     left: 0,
-    position: 'absolute',
+    position: "absolute",
+  },
+  card: {
+    backgroundColor: "#fff",
+    padding: 16,
+    borderRadius: 16,
+    marginVertical: 12,
+    elevation: 3,
+  },
+  name: {
+    fontSize: 24,
+    fontWeight: "600",
+    marginBottom: 12,
+  },
+  row: {
+    flexDirection: "row",
+    marginBottom: 6,
+  },
+  label: {
+    fontWeight: "500",
+    width: 110,
+  },
+  value: {
+    flex: 1,
+  },
+  retryButton: {
+    alignSelf: "flex-start",
+    backgroundColor: "#007AFF",
+    borderRadius: 8,
+    marginTop: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+  },
+  retryText: {
+    color: "#fff",
+    fontWeight: "600",
+  },
+  logoutButton: {
+    marginTop: 10,
+    width: "100%",
+    backgroundColor: "#b42318",
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  logoutText: {
+    color: "#fff",
+    fontWeight: "600",
   },
 });

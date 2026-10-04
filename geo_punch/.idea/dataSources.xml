@@ -15,5 +15,40 @@
       <jdbc-url>jdbc:postgresql://103.193.73.133:5432/geopunch_db</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="PostgreSQL" uuid="233ec249-10a3-4c1d-8c3e-27d03703ca13">
+      <driver-ref>postgresql</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.postgresql.Driver</jdbc-driver>
+      <jdbc-url>jdbc:postgres://a7a57214cd4f414ab6e45d3abefbc6b84451708151793a3e8177b6178a87101f:sk_8PUH2maY68LUw3FybuKG7@db.prisma.io:5432/postgres?sslmode=require</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
+    <data-source source="LOCAL" name="borderfl_geopunch_db@server3.hostingbangladesh.com" uuid="001eca41-a56a-4612-830f-25377e4402b1">
+      <driver-ref>postgresql</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.postgresql.Driver</jdbc-driver>
+      <jdbc-url>jdbc:postgresql://server3.hostingbangladesh.com:5432/borderfl_geopunch_db</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
+    <data-source source="LOCAL" name="postgres@200.234.33.89" uuid="4e67e02f-70bc-40fe-b897-055dfa105409">
+      <driver-ref>postgresql</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.postgresql.Driver</jdbc-driver>
+      <jdbc-url>jdbc:postgresql://200.234.33.89:5432/postgres</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
+    <data-source source="LOCAL" name="nexus_db@200.234.33.89" uuid="6ce32d6d-3c39-4238-8ab5-3df12b0fc660">
+      <driver-ref>postgresql</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.postgresql.Driver</jdbc-driver>
+      <jdbc-url>jdbc:postgresql://200.234.33.89:4000/nexus_db</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
+    <data-source source="LOCAL" name="nexus_db@200.234.33.89 TEST" uuid="cea4b0ce-639d-4225-96b0-84d21f6fe6fc">
+      <driver-ref>postgresql</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.postgresql.Driver</jdbc-driver>
+      <jdbc-url>jdbc:postgresql://200.234.33.89:4001/nexus_db</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>

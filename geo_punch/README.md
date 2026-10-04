@@ -1,50 +1,22 @@
-# Welcome to your Expo app 👋
+# GeoPunch Android app
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+GeoPunch lets employees sign in, take an attendance selfie, submit their current coordinates, and view their attendance history and profile. The Next.js app validates the attendance radius and stores the selfie.
 
-## Get started
+## Configure the app
 
-1. Install dependencies
+Copy `.env.example` to `.env` and set `EXPO_PUBLIC_API_URL` to the origin of the Next.js server (without `/api`). For an Android emulator, `http://10.0.2.2:3000` reaches a Next.js server running on the development computer. A physical Android device needs the computer's reachable LAN address or a deployed HTTPS URL.
 
-   ```bash
-   npm install
-   ```
+For a local HTTP server, set `EXPO_PUBLIC_ALLOW_CLEARTEXT_HTTP=true`. The Android config only permits cleartext traffic for non-production profiles and only when the API URL is HTTP. Production EAS builds require an HTTPS API URL.
 
-2. Start the app
+The attendance screen can show a map when `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY` is set. Restrict that Google Maps key to the Android package `com.musfiquerrhman.geo_punch` and the required Maps SDK. Rebuild the native app after changing the key; without it, the app shows the current coordinates instead of a broken map.
 
-   ```bash
-   npx expo start
-   ```
+## Run on Android
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```sh
+npm install
+npx expo start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Use a development build or Android emulator. Camera and foreground location permission prompts appear only when the employee opens the attendance flow. No background location or photo-library permission is needed.
 
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+For EAS production builds, configure `EXPO_PUBLIC_API_URL` as an HTTPS URL and optionally `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY` in the EAS production environment before running `eas build --platform android --profile production`.
