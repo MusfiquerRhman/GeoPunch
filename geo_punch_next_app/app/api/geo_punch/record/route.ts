@@ -100,7 +100,7 @@ export async function POST(req: Request) {
     }, { status: 403 });
   }
 
-  const uploadDir = process.env.ATTENDANCE_UPLOAD_DIR || path.join(process.cwd(), "data", "attendance-uploads");
+  const uploadDir = path.join(/*turbopackIgnore: true*/ process.cwd(), "data", "attendance-uploads");
   const fileName = `${randomUUID()}.${extensionForType[contentType]}`;
   const filePath = path.join(uploadDir, fileName);
   await mkdir(uploadDir, { recursive: true });

@@ -4,12 +4,12 @@ import { db } from "@/utils/prisma";
 
 export async function GET(req: Request) {
     try {
-        const user = await getUserFromRequest(req);
-        if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const authenticatedEmployee = await getUserFromRequest(req);
+        if (!authenticatedEmployee) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const userDetailsObj = await db.employees.findUnique({
             where: {
-                id: user.id,
+                id: authenticatedEmployee.id,
             },
             select: {
                 name: true,

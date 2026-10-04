@@ -16,7 +16,6 @@ services:
       - PORT=3000
       - TZ=Asia/Dhaka
       - ATTENDANCE_RADIUS_METERS=${ATTENDANCE_RADIUS_METERS:-100}
-      - ATTENDANCE_UPLOAD_DIR=/app/data/attendance-uploads
     volumes:
       - attendance_uploads:/app/data/attendance-uploads
 

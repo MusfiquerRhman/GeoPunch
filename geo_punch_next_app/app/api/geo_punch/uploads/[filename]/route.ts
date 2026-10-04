@@ -34,11 +34,8 @@ export async function GET(
   }
 
   const actualPath = record.selfie_url === privateUrl
-    ? path.join(
-        process.env.ATTENDANCE_UPLOAD_DIR || path.join(process.cwd(), "data", "attendance-uploads"),
-        filename,
-      )
-    : path.join(process.cwd(), "public", "uploads", filename);
+    ? path.join(/*turbopackIgnore: true*/ process.cwd(), "data", "attendance-uploads", filename)
+    : path.join(/*turbopackIgnore: true*/ process.cwd(), "public", "uploads", filename);
 
   try {
     const image = await readFile(actualPath);
