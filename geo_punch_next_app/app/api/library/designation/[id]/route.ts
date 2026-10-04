@@ -1,7 +1,8 @@
 import { handlePrismaError } from "@/app/api/_utils/handlePrismaError";
 import { db } from "@/utils/prisma";
+import { withAdminAuth } from "../../../_utils/auth";
 
-export async function GET(request: Request, { params }: { params: { id: string } }): Promise<Response> {
+async function getDesignation(request: Request,  { params }: { params: Promise<{ id: string }> }): Promise<Response> {
     const { id } = await params;
     
     const designation = await db.designations.findUnique({
@@ -17,7 +18,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
     return new Response(JSON.stringify(designation), { status: 200 });
 }
 
-export async function PUT(request: Request, { params }: { params: { id: string } }): Promise<Response> {
+async function updateDesignation(request: Request, { params }: { params: Promise<{ id: string }> }): Promise<Response> {
     const { id } = await params;
     const { designation } = await request.json();
 
@@ -47,7 +48,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     }
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }): Promise<Response> {
+async function deleteDesignation(request: Request, { params }: { params: Promise<{ id: string }> }): Promise<Response> {
     const { id } = await params;
     try {
         await db.designations.delete({
@@ -67,3 +68,7 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
         );
     }
 }
+
+export const GET = withAdminAuth(getDesignation);
+export const PUT = withAdminAuth(updateDesignation);
+export const DELETE = withAdminAuth(deleteDesignation);

@@ -1,7 +1,7 @@
 "use client";
 
 import { formatDateTime } from "@/utils/localDateString";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 type Employee = {
@@ -18,27 +18,15 @@ type PunchRecord = {
   selfie_url: string;
   status: number;
   submitted_at:  Date;
-  address: string;
-  distance: number;
+  address: string | null;
+  distance: number | null;
   nearest_office_address: string | null;
   nearest_office_name: string | null;
 };
 
-// mock reverse geocode function (replace with real API)
-async function reverseGeocode(lat: number, lng: number) {
-  const res = await fetch(
-    `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`
-  );
-  const data = await res.json();
-  return `${data.locality}, ${data.principalSubdivision}, ${data.countryName}`;
-}
-
 export default function PunchCard({ record }: { record: PunchRecord }) {
     const queryClient = useQueryClient();
 
-    console.log("PunchCard record:", record);
-
-    const [location, setLocation] = useState<string>("Loading location...");
     const [openImage, setOpenImage] = useState(false);
 
     const approveCheckIn = async (id: string) => {
@@ -84,10 +72,6 @@ export default function PunchCard({ record }: { record: PunchRecord }) {
         }
     }
 
-  useEffect(() => {
-    reverseGeocode(record.latitude, record.longitude).then(setLocation);
-  }, [record.latitude, record.longitude]);
-
   return (
     <div className="flex flex-row max-w-3xl w-full rounded-2xl border border-gray-200 bg-white shadow-md overflow-hidden hover:shadow-xl transition">
       <div className="flex-1">
@@ -123,8 +107,8 @@ export default function PunchCard({ record }: { record: PunchRecord }) {
         {/* Body */}
         <div className="p-4 space-y-3 text-sm">
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wide font-mono">Location</p>
-            <p className="font-medium text-gray-800">{record?.address ?? location}</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wide font-mono">Client-reported address · unverified</p>
+            <p className="font-medium text-gray-800">{record?.address ?? "No address submitted"}</p>
                <span className="text-xs text-gray-500 uppercase tracking-wide font-mono">
                 (LAT:{record.latitude}, LON:{record.longitude})
               </span>

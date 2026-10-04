@@ -1,13 +1,19 @@
 import { handlePrismaError } from "@/app/api/_utils/handlePrismaError";
 import { db } from "@/utils/prisma";
+import bcrypt from "bcryptjs";
+import { withAdminAuth } from "../../_utils/auth";
 
-export async function GET(request: Request, { params }: { params: { id: string } }): Promise<Response> {
+async function getUser(request: Request,  { params }: { params: Promise<{ id: string }> }): Promise<Response> {
     const { id } = await params;
     
     const employee = await db.employees.findUnique({
         where: {
             id: id
-        }
+        },
+        select: {
+            id: true, id_card_no: true, name: true, email: true, phone_no: true,
+            is_active: true, is_admin: true, department_id: true, designation_id: true, company_id: true,
+        },
     });
 
     if (!employee) {
@@ -17,12 +23,21 @@ export async function GET(request: Request, { params }: { params: { id: string }
     return new Response(JSON.stringify(employee), { status: 200 });
 }
 
-export async function PUT(request: Request, { params }: { params: { id: string } }): Promise<Response> {
+async function updateUser(request: Request, { params }: { params: Promise<{ id: string }> }): Promise<Response> {
     const { id } = await params;
-    const { id_card_no, name, email, department_id, designation_id, company_id, phone_no, isActive, password, isAdmin} = await request.json();
+    let data: any;
+    try {
+        data = await request.json();
+    } catch {
+        return Response.json({ message: "Invalid request body" }, { status: 400 });
+    }
+    const { id_card_no, name, email, department_id, designation_id, company_id, phone_no, isActive, password, isAdmin } = data;
 
     if (!name || typeof name !== "string") {
         return new Response("Invalid input", { status: 400 });
+    }
+    if (typeof password !== "string" || (password.length > 0 && password.length < 8)) {
+        return Response.json({ message: "A new password must be at least 8 characters" }, { status: 400 });
     }
 
     try {
@@ -34,26 +49,15 @@ export async function PUT(request: Request, { params }: { params: { id: string }
                 id_card_no: id_card_no,
                 name: name,
                 email: email,
-                departments: {
-                    connect: {
-                        id: department_id
-                    }
-                },
-                designations: {
-                    connect: {
-                        id: designation_id
-                    }
-                },
-                company: {
-                    connect: {
-                        id: company_id
-                    }
-                },
+                departments: department_id ? { connect: { id: department_id } } : { disconnect: true },
+                designations: designation_id ? { connect: { id: designation_id } } : { disconnect: true },
+                company: company_id ? { connect: { id: company_id } } : { disconnect: true },
                 phone_no: phone_no,
                 is_active: isActive,
-                password: password,
+                ...(password ? { hashed_password: await bcrypt.hash(password, 12), password: null } : {}),
                 is_admin: isAdmin,
             },
+            select: { id: true, name: true, id_card_no: true, email: true, is_admin: true, is_active: true },
         });
         
         return new Response(JSON.stringify(updatedEmployee), { status: 200 });
@@ -69,7 +73,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     }
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }): Promise<Response> {
+async function deleteUser(request: Request, { params }: { params: Promise<{ id: string }> }): Promise<Response> {
     const { id } = await params;
     try {
         await db.employees.delete({
@@ -89,3 +93,7 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
         );
     }
 }
+
+export const GET = withAdminAuth(getUser);
+export const PUT = withAdminAuth(updateUser);
+export const DELETE = withAdminAuth(deleteUser);

@@ -4,7 +4,16 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 
 export async function POST(req: Request) {
-  const { id_card_no, password } = await req.json();
+  let body: { id_card_no?: unknown; password?: unknown };
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  }
+  const { id_card_no, password } = body;
+  if (typeof id_card_no !== "string" || typeof password !== "string" || !id_card_no || !password) {
+    return NextResponse.json({ error: "ID card number and password are required" }, { status: 400 });
+  }
 
 
   // TODO: validate user from DB
@@ -39,7 +48,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid ID Card No or password" }, { status: 401 });
   }
 
-  if (user.password !== password) {
+  const passwordValid = user.hashed_password
+    ? await bcrypt.compare(password, user.hashed_password)
+    : user.password === password;
+
+  if (!passwordValid) {
     return NextResponse.json({ error: "Invalid ID Card No or password" }, { status: 401 });
   }
 
@@ -47,18 +60,19 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Account is inactive. Please contact admin." }, { status: 403 });
   }
 
-  // will do it next, after making sure the api is working
-  // const isValid = await bcrypt.compare(password, user.hashed_password ?? '');
-
-  // if (!isValid) {
-  //   return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
-  // }
+  // Upgrade a legacy plaintext password on its next successful login.
+  if (!user.hashed_password && user.password) {
+    await db.employees.update({
+      where: { id: user.id },
+      data: { hashed_password: await bcrypt.hash(password, 12), password: null },
+    });
+  }
 
   const token = await signToken({
     id: user.id,
     name: user.name,
     email: user.email,
-    isAdmin: user.is_admin,
+    isAdmin: user.is_admin === true,
     id_card_no: user.id_card_no,
     phone_no: user.phone_no,
     departments: user.departments?.department_name,
@@ -69,7 +83,7 @@ export async function POST(req: Request) {
     id: user.id,
     name: user.name,
     email: user.email,
-    isAdmin: user.is_admin,
+    isAdmin: user.is_admin === true,
     id_card_no: user.id_card_no,
     phone_no: user.phone_no,
     departments: user.departments?.department_name,
@@ -81,6 +95,7 @@ export async function POST(req: Request) {
     secure: process.env.NODE_ENV === "production", // important!
     path: "/",
     maxAge: 60 * 60 * 24 * 7,
+    sameSite: "lax",
   });
 
   return response;

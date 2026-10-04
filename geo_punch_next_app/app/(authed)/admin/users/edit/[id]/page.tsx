@@ -2,7 +2,7 @@
 
 import { Wrapper, FormField } from "@/components";
 import { useForm } from "react-hook-form";
-import { userSchema } from "../../schema";
+import { editUserSchema } from "../../schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { use, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -15,7 +15,8 @@ export default function NewUsers({ params }: EmployeeDetailsPageProps){
     const { id } = use(params);
 
     const form = useForm({
-        resolver: zodResolver(userSchema),
+        resolver: zodResolver(editUserSchema),
+        defaultValues: { password: "" },
     });
 
     const [message, setMessage] = useState('');
@@ -33,7 +34,6 @@ export default function NewUsers({ params }: EmployeeDetailsPageProps){
                 setValue("name", data.name);
                 setValue("email", data.email);
                 setValue("department_id", data.department_id);
-                setValue("password", data.password);
                 setValue("designation_id", data.designation_id);
                 setValue("company_id", data.company_id);
                 setValue("phone_no", data.phone_no);
@@ -144,7 +144,7 @@ export default function NewUsers({ params }: EmployeeDetailsPageProps){
                 <FormField
                     label="Password"
                     name="password"
-                    placeholder="Password"
+                    placeholder="Leave blank to keep current password"
                     type="password"
                     register={register}
                     errors={form.formState.errors.password}

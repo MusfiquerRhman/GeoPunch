@@ -1,7 +1,8 @@
+'use client';
+
 import Providers from "@/components/provider";
 import SideBar from "@/components/sidebar/SideBar";
 import { Toaster } from 'sonner';
-import { QueryClient  } from "@tanstack/react-query";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return (

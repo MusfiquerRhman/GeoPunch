@@ -1,0 +1,24 @@
+services:
+  app:
+    image: musfiquerrhman/geopunch:latest
+
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: GEOPUNCH_SERVER
+    restart: always
+    ports:
+      - "10000:3000"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - TZ=Asia/Dhaka
+      - ATTENDANCE_RADIUS_METERS=${ATTENDANCE_RADIUS_METERS:-100}
+      - ATTENDANCE_UPLOAD_DIR=/app/data/attendance-uploads
+    volumes:
+      - attendance_uploads:/app/data/attendance-uploads
+
+volumes:
+  attendance_uploads:

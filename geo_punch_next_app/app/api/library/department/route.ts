@@ -1,7 +1,8 @@
 import { db } from "@/utils/prisma";
 import { handlePrismaError } from "../../_utils/handlePrismaError";
+import { withAdminAuth } from "../../_utils/auth";
 
-export async function GET(request: Request): Promise<Response> {
+async function listDepartments(request: Request): Promise<Response> {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "0");
     const search = searchParams.get("search") || "";
@@ -29,7 +30,7 @@ export async function GET(request: Request): Promise<Response> {
     return Response.json({ departments, count });
 }
 
-export async function POST(req: Request): Promise<Response> {
+async function createDepartment(req: Request): Promise<Response> {
     const { department_name } = await req.json();
 
     if (!department_name || typeof department_name !== "string") {
@@ -54,3 +55,6 @@ export async function POST(req: Request): Promise<Response> {
         );
     }
 }
+
+export const GET = withAdminAuth(listDepartments);
+export const POST = withAdminAuth(createDepartment);

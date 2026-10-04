@@ -1,7 +1,8 @@
 import { handlePrismaError } from "@/app/api/_utils/handlePrismaError";
 import { db } from "@/utils/prisma";
+import { withAdminAuth } from "../../../_utils/auth";
 
-export async function GET(request: Request, { params }: { params: { id: string } }): Promise<Response> {
+async function getOffice(request: Request,  { params }: { params: Promise<{ id: string }> }): Promise<Response> {
     const { id } = await params;
     
     const office = await db.offices.findUnique({
@@ -30,7 +31,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
     return new Response(JSON.stringify(office), { status: 200 });
 }
 
-export async function PUT(request: Request, { params }: { params: { id: string } }): Promise<Response> {
+async function updateOffice(request: Request, { params }: { params: Promise<{ id: string }> }): Promise<Response> {
     const { id } = await params;
     const { name, company_id, locations } = await request.json();
 
@@ -38,11 +39,11 @@ export async function PUT(request: Request, { params }: { params: { id: string }
         return new Response("Invalid input", { status: 400 });
     }
 
-    console.log(locations);
+    if (!Array.isArray(locations)) return new Response("Invalid locations", { status: 400 });
 
     try {
         return await db.$transaction(async (tx) => {
-            const updatedOffice = await db.offices.update({
+            const updatedOffice = await tx.offices.update({
                 where: {
                     id: id
                 },
@@ -70,6 +71,9 @@ export async function PUT(request: Request, { params }: { params: { id: string }
             if (locations && Array.isArray(locations)) {
                 for(const loc of locations) {
                     if (loc.id) {
+                        if (!existingLocations.some((existing) => existing.id === loc.id)) {
+                            throw new Error("Office location does not belong to this office");
+                        }
                         // Update existing location
                         await tx.office_locations.update({
                             where: { id: loc.id },
@@ -105,7 +109,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     }
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }): Promise<Response> {
+async function deleteOffice(request: Request, { params }: { params: Promise<{ id: string }> }): Promise<Response> {
     const { id } = await params;
     try {
         await db.offices.delete({
@@ -124,3 +128,7 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
         );
     }
 }
+
+export const GET = withAdminAuth(getOffice);
+export const PUT = withAdminAuth(updateOffice);
+export const DELETE = withAdminAuth(deleteOffice);

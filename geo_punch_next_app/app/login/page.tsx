@@ -11,7 +11,6 @@ import { useEffect, useState } from "react";
 const Login = () => {
     const router = useRouter();
 
-    const [token, setToken] = useState<string | undefined>();
     const [error, seterror] = useState("");
 
     const form = useForm({
@@ -25,12 +24,12 @@ const Login = () => {
     } = form;
 
     useEffect(() => {
-        const local_token = localStorage.getItem("token");
-
-        if (local_token) {
-            setToken(local_token);
-            router.push("/");
-        }
+        fetch("/api/auth/session")
+            .then(async (res) => res.ok ? res.json() : null)
+            .then((session) => {
+                if (session?.authenticated && session.isAdmin) router.replace("/attendance/check-in");
+            })
+            .catch(() => undefined);
     }, [router]);
 
     const onSubmit = async (data: any) => {
@@ -59,27 +58,8 @@ const Login = () => {
                 return;
             }
 
-            const token = result.token;
-
-            localStorage.setItem("token", token);
-            setToken(token);
-
-            // fallback: set a non-HttpOnly cookie so middleware sees the token
-            try {
-                const cookieVal = encodeURIComponent(token);
-                document.cookie = `token=${cookieVal}; path=/; max-age=${60 * 60 * 24 * 7}; samesite=lax`;
-                console.log("document.cookie after set:", document.cookie);
-            } catch (e) {
-                console.error("failed to set fallback cookie", e);
-            }
-
-            // navigate to home and refresh server components
-            await router.push("/");
-            try {
-                router.refresh();
-            } catch (e) {
-                // ignore refresh errors
-            }
+            await router.replace("/attendance/check-in");
+            router.refresh();
         } catch (err) {
             console.error("Login request failed:", err);
 

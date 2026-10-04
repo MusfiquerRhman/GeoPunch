@@ -1,16 +1,16 @@
-type Coordinate = {
+export type Coordinate = {
     lat: number;
     lng: number;
 };
 
-type Office = {
-    id: number;
+export type Office = {
+    id: string;
     name: string;
     lat: number;
     lng: number;
 };
 
-function haversineDistance(a: Coordinate, b: Coordinate): number {
+export function haversineDistance(a: Coordinate, b: Coordinate): number {
     const R = 6371000; // Earth radius in meters
 
     const toRad = (deg: number) => (deg * Math.PI) / 180;
@@ -32,7 +32,7 @@ function haversineDistance(a: Coordinate, b: Coordinate): number {
     return R * c;
 }
 
-function findClosestOffice(
+export function findClosestOffice(
     user: Coordinate,
     offices: Office[]
 ) {

@@ -1,20 +1,37 @@
-import { SignJWT, jwtVerify } from "jose";
+import { SignJWT, jwtVerify, type JWTPayload } from "jose";
 
-const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
+function getSecret() {
+  const value = process.env.JWT_SECRET;
+  const secret = value ? new TextEncoder().encode(value) : null;
+  if (!secret || secret.byteLength < 32) {
+    throw new Error("JWT_SECRET must be configured with at least 32 bytes");
+  }
+  return secret;
+}
 
-export async function signToken(payload: any) {
-  return await new SignJWT(payload)
+export type AppTokenPayload = JWTPayload & {
+  id: string;
+  isAdmin: boolean;
+};
+
+export async function signToken(payload: AppTokenPayload) {
+  return new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
     .setExpirationTime("7d")
     .setIssuedAt()
-    .sign(secret);
+    .sign(getSecret());
 }
 
-export async function verifyToken(token: string) {
+export async function verifyToken(token: string): Promise<AppTokenPayload | null> {
   try {
-    const { payload } = await jwtVerify(token, secret);
-    return payload;
-  } catch (err) {
+    const { payload } = await jwtVerify(token, getSecret(), {
+      algorithms: ["HS256"],
+    });
+    if (typeof payload.id !== "string" || typeof payload.isAdmin !== "boolean") {
+      return null;
+    }
+    return payload as AppTokenPayload;
+  } catch {
     return null;
   }
 }

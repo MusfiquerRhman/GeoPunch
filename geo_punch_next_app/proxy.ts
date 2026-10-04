@@ -1,52 +1,59 @@
-import { verifyToken } from "@/app/api/_utils/jwt";
 import { NextRequest, NextResponse } from "next/server";
+import { verifyToken } from "@/app/api/_utils/jwt";
 
-export function proxy(req: NextRequest) {
-  let token = req.cookies.get("token")?.value;
-  
+const publicPaths = new Set([
+  "/login",
+  "/api/auth/login",
+  "/api/auth/geo_punch/login",
+  "/api/auth/logout",
+]);
+
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  // Old upload URLs must never be served as static public files. Selfies are
+  // delivered through the authenticated, record-aware API route instead.
+  if (pathname === "/uploads" || pathname.startsWith("/uploads/")) {
+    return new Response(null, { status: 404 });
+  }
+
   if (
-    pathname.startsWith("/_next") ||   // Next.js internals
-    pathname.startsWith("/favicon.ico") ||
-    pathname.startsWith("/images") ||  // if you use public/images
-    pathname.startsWith("/login") ||
-    pathname.startsWith("/register") ||
-    pathname.startsWith("/api/auth") ||
-    pathname.startsWith("/uploads") // allow access to uploaded images
+    pathname.startsWith("/_next/") ||
+    pathname === "/favicon.ico" ||
+    publicPaths.has(pathname)
   ) {
     return NextResponse.next();
   }
 
-  if (!token) {
-    const authHeader = req.headers.get("authorization");
+  const bearer = req.headers.get("authorization");
+  const token = bearer?.startsWith("Bearer ")
+    ? bearer.slice(7).trim()
+    : req.cookies.get("token")?.value;
+  const payload = token ? await verifyToken(token) : null;
 
-    if (authHeader?.startsWith("Bearer ")) {
-      token = authHeader.split(" ")[1];
+  if (!payload) {
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  if (!token) {
-    return handleUnauthorized(req);
+  const adminOnly =
+    pathname.startsWith("/api/admin/") ||
+    pathname.startsWith("/api/users") ||
+    pathname.startsWith("/api/library/") ||
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/library") ||
+    pathname.startsWith("/attendance") ||
+    pathname.startsWith("/dashboard") ||
+    pathname === "/";
+
+  if (adminOnly && payload.isAdmin !== true) {
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  try {
-    verifyToken(token);
-    console.log("Token verified successfully for request to:", req.nextUrl.pathname);
-    return NextResponse.next();
-  } catch {
-    return handleUnauthorized(req);
-  }
-}
-
-function handleUnauthorized(req: NextRequest) {
-  console.log("Unauthorized access attempt to:", req.nextUrl.pathname);
-  if (req.nextUrl.pathname.startsWith("/api")) {
-    return new Response(
-      JSON.stringify({ message: "Unauthorized" }),
-      { status: 401 }
-    );
-  }
-
-  // return NextResponse.redirect(new URL("/login", req.url));
+  return NextResponse.next();
 }

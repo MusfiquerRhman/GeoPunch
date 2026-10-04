@@ -1,24 +1,15 @@
 import { NextResponse } from "next/server";
-import { verifyToken } from "../../_utils/jwt";
+import { getUserFromRequest } from "../../_utils/auth";
 import { db } from "@/utils/prisma";
 
 export async function GET(req: Request) {
     try {
-        const authHeader = req.headers.get("authorization");
-
-        if (!authHeader?.startsWith("Bearer ")) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
-        const token = authHeader.split(" ")[1];
-
-        const payload: any = await verifyToken(token);
-
-        const employee_id = payload.id; // 👈 from your JWT
+        const user = await getUserFromRequest(req);
+        if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const userDetailsObj = await db.employees.findUnique({
             where: {
-                id: employee_id,
+                id: user.id,
             },
             select: {
                 name: true,

@@ -1,13 +1,18 @@
 import { db } from "@/utils/prisma";
+import { withAdminAuth } from "../../_utils/auth";
+import { protectedSelfieUrl } from "../../_utils/attendanceFiles";
 
-export async function GET(request: Request): Promise<Response> {
+async function listCheckIns(request: Request): Promise<Response> {
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get("page") || "0");
-    const status = searchParams.get("status");
+    const page = Number(searchParams.get("page") ?? 0);
+    const status = Number(searchParams.get("status") ?? 1);
+    if (!Number.isInteger(page) || page < 0 || ![0, 1, 2].includes(status)) {
+        return Response.json({ error: "Invalid page or status" }, { status: 400 });
+    }
 
     const data = await db.attendance_record.findMany({
         where: {
-            status: status === "1" ? 1 : status === "2" ? 2 : 0,
+            status,
         },
         select: {
             id: true,
@@ -48,7 +53,7 @@ export async function GET(request: Request): Promise<Response> {
         id: record.id,
         latitude: record.latitude,
         longitude: record.longitude,
-        selfie_url: record.selfie_url,
+        selfie_url: protectedSelfieUrl(record.selfie_url),
         submitted_at: record.submitted_at,
         status: record.status,
         address: record.address,
@@ -65,3 +70,5 @@ export async function GET(request: Request): Promise<Response> {
 
     return Response.json({ records });
 }
+
+export const GET = withAdminAuth(listCheckIns);

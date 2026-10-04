@@ -1,7 +1,8 @@
 import { handlePrismaError } from "@/app/api/_utils/handlePrismaError";
 import { db } from "@/utils/prisma";
+import { withAdminAuth } from "../../../_utils/auth";
 
-export async function GET(request: Request, { params }: { params: { id: string } }): Promise<Response> {
+async function getCompany(request: Request,  { params }: { params: Promise<{ id: string }> }): Promise<Response> {
     const { id } = await params;
     
     const company = await db.company.findUnique({
@@ -17,7 +18,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
     return new Response(JSON.stringify(company), { status: 200 });
 }
 
-export async function PUT(request: Request, { params }: { params: { id: string } }): Promise<Response> {
+async function updateCompany(request: Request, { params }: { params: Promise<{ id: string }> }): Promise<Response> {
     const { id } = await params;
     const { name } = await request.json();
 
@@ -47,7 +48,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     }
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }): Promise<Response> {
+async function deleteCompany(request: Request, { params }: { params: Promise<{ id: string }> }): Promise<Response> {
     const { id } = await params;
     try {
         await db.company.delete({
@@ -67,3 +68,7 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
         );
     }
 }
+
+export const GET = withAdminAuth(getCompany);
+export const PUT = withAdminAuth(updateCompany);
+export const DELETE = withAdminAuth(deleteCompany);

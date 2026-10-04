@@ -1,7 +1,8 @@
 import { db } from "@/utils/prisma";
 import { handlePrismaError } from "../../_utils/handlePrismaError";
+import { withAdminAuth } from "../../_utils/auth";
 
-export async function GET(request: Request): Promise<Response> {
+async function listDesignations(request: Request): Promise<Response> {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "0");
     const search = searchParams.get("search") || "";
@@ -29,7 +30,7 @@ export async function GET(request: Request): Promise<Response> {
     return Response.json({ designations, count });
 }
 
-export async function POST(req: Request): Promise<Response> {
+async function createDesignation(req: Request): Promise<Response> {
     const { designation } = await req.json();
 
     if (!designation || typeof designation !== "string") {
@@ -53,3 +54,6 @@ export async function POST(req: Request): Promise<Response> {
         );
     }
 }
+
+export const GET = withAdminAuth(listDesignations);
+export const POST = withAdminAuth(createDesignation);

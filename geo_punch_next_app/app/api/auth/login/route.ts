@@ -2,9 +2,19 @@ import { db } from "@/utils/prisma";
 import { signToken } from "../../_utils/jwt";
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import { migrateLegacyEmployeePasswords } from "../../_utils/auth";
 
 export async function POST(req: Request) {
-  const { id_card_no, password } = await req.json();
+  let body: { id_card_no?: unknown; password?: unknown };
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  }
+  const { id_card_no, password } = body;
+  if (typeof id_card_no !== "string" || typeof password !== "string" || !id_card_no || !password) {
+    return NextResponse.json({ error: "ID card number and password are required" }, { status: 400 });
+  }
 
   // TODO: validate user from DB
   const user = await db.employees.findUnique({
@@ -38,7 +48,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid ID Card No or password" }, { status: 401 });
   }
 
-  if (user.password !== password) {
+  const passwordValid = user.hashed_password
+    ? await bcrypt.compare(password, user.hashed_password)
+    : user.password === password;
+
+  if (!passwordValid) {
     return NextResponse.json({ error: "Invalid ID Card No or password" }, { status: 401 });
   }
 
@@ -50,31 +64,27 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Account is inactive. Please contact admin." }, { status: 403 });
   }
 
-  // will do it next, after making sure the api is working
-  // const isValid = await bcrypt.compare(password, user.hashed_password ?? '');
-
-  // if (!isValid) {
-  //   return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
-  // }
+  await migrateLegacyEmployeePasswords();
 
   const token = await signToken({
     id: user.id,
     name: user.name,
     email: user.email,
-    isAdmin: user.is_admin,
+    isAdmin: user.is_admin === true,
     id_card_no: user.id_card_no,
     phone_no: user.phone_no,
     departments: user.departments?.department_name,
     designations: user.designations?.designations,
   });
 
-  const response = NextResponse.json({ token });
+  const response = NextResponse.json({ success: true });
 
   response.cookies.set("token", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production", // important!
     path: "/",
     maxAge: 60 * 60 * 24 * 7,
+    sameSite: "lax",
   });
 
   return response;

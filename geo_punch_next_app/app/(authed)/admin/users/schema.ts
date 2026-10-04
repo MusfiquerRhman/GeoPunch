@@ -9,6 +9,12 @@ export const userSchema = z.object({
     phone_no: z.string().min(1, "Phone No is required"),
     isActive: z.boolean(),
     email: z.email("Invalid email address"),
-    password: z.string().min(6, "Password must be at least 6 characters long"),
+    password: z.string().min(8, "Password must be at least 8 characters long"),
     isAdmin: z.boolean(),
+});
+
+export const editUserSchema = userSchema.extend({
+    password: z.string().refine((password) => password.length === 0 || password.length >= 8, {
+        message: "A new password must be at least 8 characters long",
+    }),
 });

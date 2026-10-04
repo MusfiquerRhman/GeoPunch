@@ -102,14 +102,8 @@ const NavTree = () => {
             },
         });
 
-        if(res.ok) {
-            // Redirect to login page or show a success message
-            localStorage.removeItem("token");
-            window.location.href = "/login";
-        } else {
-            // Handle error case
-            console.error("Logout failed");
-        }
+        if (res.ok) window.location.href = "/login";
+        else console.error("Logout failed");
     };
 
     return (

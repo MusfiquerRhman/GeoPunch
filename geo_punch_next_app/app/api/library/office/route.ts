@@ -1,7 +1,8 @@
 import { db } from "@/utils/prisma";
 import { handlePrismaError } from "../../_utils/handlePrismaError";
+import { withAdminAuth } from "../../_utils/auth";
 
-export async function GET(request: Request): Promise<Response> {
+async function listOffices(request: Request): Promise<Response> {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "0");
     const search = searchParams.get("search") || "";
@@ -88,7 +89,7 @@ export async function GET(request: Request): Promise<Response> {
     return Response.json({ offices, count });
 }
 
-export async function POST(req: Request): Promise<Response> {
+async function createOffice(req: Request): Promise<Response> {
     const { name, company_id, locations } = await req.json();
 
     if (!name || typeof name !== "string") {
@@ -130,3 +131,6 @@ export async function POST(req: Request): Promise<Response> {
         );
     }
 }
+
+export const GET = withAdminAuth(listOffices);
+export const POST = withAdminAuth(createOffice);
