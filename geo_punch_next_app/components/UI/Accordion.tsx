@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type JSX } from "react";
+import { useEffect, useState, type JSX } from "react";
 import Button from "./Button";
 import { motion } from "framer-motion";
 import { caretDownIcon, caretUpIcon } from "@/assets";
@@ -18,23 +18,31 @@ type AccordionProps = {
 const Accordion = ({items, label, icon, isLinkOpen}: AccordionProps) => {
     const [isOpen, setIsOpen] = useState(isLinkOpen || false);
 
+    useEffect(() => {
+        if (isLinkOpen) setIsOpen(true);
+    }, [isLinkOpen]);
+
     return (
-        <div>
+        <div className="mb-1">
             <Button variant="accordion"
                 onClick={() => setIsOpen(!isOpen)} 
                 type="button" 
                 label={label} 
                 rightIcon={isOpen ? caretUpIcon : caretDownIcon} 
-                className={`${isOpen ? 'bg-primary text-[0.9rem]' : 'bg-secondary text-[0.9rem] '}`}
+                aria-expanded={isOpen}
+                className={`rounded-xl border px-3 text-sm font-medium shadow-none transition-colors ${isOpen
+                    ? 'border-teal-700 bg-teal-700 text-white hover:bg-teal-800 [&_img]:brightness-0 [&_img]:invert'
+                    : 'border-gray-200 bg-gray-50 text-gray-700 hover:border-teal-200 hover:bg-teal-50 [&_img]:brightness-0 [&_img]:opacity-60'
+                }`}
                 leftIcon={icon} 
             />
             <motion.div
                 initial={{ height: 0, opacity: 0 }}
                 animate={isOpen ? { height: "auto", opacity: 1 } : { height: 0, opacity: 0 }}
-                className="overflow-hidden bg-gray-light/10 border-primary ml-2 border-l-4 z-50"
+                className="ml-3 overflow-hidden border-l border-gray-200 pl-2"
             >
                 {items.map((item, index) => (
-                    <div key={index} className="hover:bg-gray-200">{item}</div>
+                    <div key={index} className="py-0.5">{item}</div>
                 ))}
             </motion.div>
         </div>

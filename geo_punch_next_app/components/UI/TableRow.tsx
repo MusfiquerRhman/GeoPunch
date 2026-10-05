@@ -3,7 +3,7 @@ import React from "react";
 
 const TableRow = ({children, className}: {children: React.ReactNode, className?: string}) => {
     return (
-        <tr className={clsx('even:bg-gray-light/30 p-2 text-center border-x-2 border-gray/20', className)}>
+        <tr className={clsx('transition-colors even:bg-gray-50/70 hover:bg-teal-50/70', className)}>
             {children}
         </tr>
     )

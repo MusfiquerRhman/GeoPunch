@@ -6,6 +6,7 @@ import { editUserSchema } from "../../schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { use, useEffect, useState } from "react";
 import { toast } from "sonner";
+import PageLoading from "@/components/UI/PageLoading";
 
 type EmployeeDetailsPageProps = {
     params: Promise<{ id: string }>
@@ -21,14 +22,16 @@ export default function NewUsers({ params }: EmployeeDetailsPageProps){
 
     const [message, setMessage] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
+    const [isLoading, setIsLoading] = useState(true);
+    const [loadError, setLoadError] = useState(false);
 
     const { register, handleSubmit, formState: { errors }, setValue } = form;
 
     useEffect(() => {   
         const fetchEmployee = async () => {
-            const res = await fetch(`/api/users/${id}`);
-            if (res.ok) {
-                console.log("Employee data fetched successfully", res);
+            try {
+                const res = await fetch(`/api/users/${id}`);
+                if (!res.ok) throw new Error("Failed to fetch user");
                 const data = await res.json();
                 setValue("id_card_no", data.id_card_no);
                 setValue("name", data.name);
@@ -39,6 +42,11 @@ export default function NewUsers({ params }: EmployeeDetailsPageProps){
                 setValue("phone_no", data.phone_no);
                 setValue("isActive", data.is_active);
                 setValue("isAdmin", data.is_admin);
+            } catch (error) {
+                console.error("Error fetching user:", error);
+                setLoadError(true);
+            } finally {
+                setIsLoading(false);
             }
         };
 
@@ -110,8 +118,10 @@ export default function NewUsers({ params }: EmployeeDetailsPageProps){
             {errorMessage && <p className="w-full max-w-[550] text-red-500 border border-red-500 p-2 bg-red-50 rounded-md mb-4">
                 {errorMessage}
             </p>}
-            <form onSubmit={handleSubmit(onSubmit)}
-                className="flex flex-row flex-wrap gap-4 w-full max-w-[550]"
+            {isLoading ? <PageLoading /> : loadError ? (
+                <p className="max-w-[550px] rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">Couldn’t load this user. Please go back and try again.</p>
+            ) : <form onSubmit={handleSubmit(onSubmit)}
+                className="form-panel flex max-w-[700px] flex-row flex-wrap gap-4"
             >
                 <FormField
                     label="Id Card No"
@@ -150,9 +160,9 @@ export default function NewUsers({ params }: EmployeeDetailsPageProps){
                     errors={form.formState.errors.password}
                 />
                 <div className="flex w-full">
-                    <label className="font-medium flex-1">Department ID</label>
+                    <label className="flex-1 text-sm font-medium text-gray-700">Department ID</label>
                     <select defaultValue={''} {...register("department_id")} 
-                        className="rounded-md px-2 py-1 border-2 border-primary w-[250] flex-3"
+                        className="form-select flex-3"
                     >
                         <option disabled value="">Select Department</option>
                         {departments.map((d: any) => (
@@ -163,9 +173,9 @@ export default function NewUsers({ params }: EmployeeDetailsPageProps){
                     </select>
                 </div>
                 <div className="flex w-full">
-                    <label className="font-medium flex-1">Designation ID</label>
+                    <label className="flex-1 text-sm font-medium text-gray-700">Designation ID</label>
                     <select defaultValue={''} {...register("designation_id")} 
-                        className="rounded-md px-2 py-1 border-2 border-primary w-[250] flex-3"
+                        className="form-select flex-3"
                     >
                         <option disabled value="">Select Designation</option>
                         {(designations ?? []).map((d: any) => (
@@ -176,9 +186,9 @@ export default function NewUsers({ params }: EmployeeDetailsPageProps){
                     </select>
                 </div>
                 <div className="flex w-full">
-                    <label className="font-medium flex-1">Company ID</label>
+                    <label className="flex-1 text-sm font-medium text-gray-700">Company ID</label>
                     <select defaultValue={''} {...register("company_id")} 
-                        className="rounded-md px-2 py-1 border-2 border-primary w-[250] flex-3"
+                        className="form-select flex-3"
                     >
                         <option disabled value="">Select Company</option>
                         {(companies ?? []).map((c: any) => (
@@ -189,27 +199,27 @@ export default function NewUsers({ params }: EmployeeDetailsPageProps){
                     </select>
                 </div>
                <div className="flex w-full gap-4 items-center">
-                    <label className="font-medium w-1/5 m-1">Active</label>
+                    <label className="m-1 w-1/5 text-sm font-medium text-gray-700">Active</label>
                     <input
                         type='checkbox'
-                        className="border-2 border-primary w-5 h-5 px-2 py-1 rounded-md"
+                        className="h-5 w-5 rounded border-gray-300 accent-teal-700 focus:ring-2 focus:ring-teal-100"
                         {...register("isActive", { setValueAs: (v) => v === true || v === "on", })}
                     />
                 </div>
                 <div className="flex w-full gap-4 items-center">
-                    <label className="font-medium w-1/5 m-1">Admin</label>
+                    <label className="m-1 w-1/5 text-sm font-medium text-gray-700">Admin</label>
                     <input
                         type='checkbox'
-                        className="border-2 border-primary w-5 h-5 px-2 py-1 rounded-md"
+                        className="h-5 w-5 rounded border-gray-300 accent-teal-700 focus:ring-2 focus:ring-teal-100"
                         {...register("isAdmin", { setValueAs: (v) => v === true || v === "on", })}
                     />
                 </div>
                 <button type="submit"
-                    className="bg-primary w-full p-2 rounded-md text-white cursor-pointer"
+                    className="w-full rounded-lg bg-teal-700 px-4 py-2.5 font-medium text-white shadow-sm transition hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700"
                 >
                     Submit
                 </button>
-            </form>
+            </form>}
         </Wrapper>
     );
 }

@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from 'framer-motion';
-import clsx from 'clsx';
 import React from 'react';
 
 type BurgerProps = {
@@ -12,38 +11,27 @@ type BurgerProps = {
 const Burger = ({ isOpen, setIsOpen }: BurgerProps) => {
     return (
         <motion.div
-            className="absolute top-1 z-10"
-            initial={{ x: isOpen ? 198 : 0 }}
-            animate={{ x: isOpen ? 198 : 0 }}
-            transition={{ type: "tween" }}
+            className="absolute left-0 top-0 z-50"
+            initial={{ x: isOpen ? 202 : 0 }}
+            animate={{ x: isOpen ? 202 : 0 }}
+            transition={{ type: "tween", duration: 0.25 }}
         >
-            <button onClick={() => setIsOpen(current => !current)} 
-                className={clsx(
-                    'absolute top-2 left-1 rounded-lg w-10 h-5 z-10 hover:cursor-pointer group', 
-                    'bg-transparent hover:bg-primary-accent'
-                )}
+            <button onClick={() => setIsOpen(current => !current)}
+                aria-label={isOpen ? "Collapse sidebar" : "Expand sidebar"}
+                aria-expanded={isOpen}
+                className="absolute left-0 top-4 flex h-10 w-10 items-center justify-center rounded-lg bg-transparent text-gray-600 transition hover:bg-gray-100 hover:text-teal-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
             >
-                <motion.div className={clsx('block w-6 h-0.5 my-1.5 mx-auto', 
-                    'bg-black opacity-60 group-hover:opacity-100 group-hover:bg-red-600'
-                )}
-                    initial={{ rotate: isOpen ? 45 : 0, y: isOpen ? 8 : 0 }}
-                    animate={{ rotate: isOpen ? 45 : 0, y: isOpen ? 8 : 0 }}
-                    transition={{ delay: 0.4}}
-                />
-                <motion.div className={clsx('block w-6 h-0.5 my-1.5 mx-auto', 
-                    'bg-black opacity-60 group-hover:opacity-100 group-hover:bg-red-600'
-                )}
-                    initial={{ width: isOpen ? 0 : 24}}
-                    animate={{ width: isOpen ? 0 : 24 }}
-                    transition={{ delay: 0.4}}
-                />
-                <motion.div className={clsx('block w-6 h-0.5 my-1.5 mx-auto', 
-                    'bg-black opacity-60 group-hover:opacity-100 group-hover:bg-red-600'
-                )}
-                    initial={{ rotate: isOpen ? 135 : 0, y: isOpen ? -8 : 0 }}
-                    animate={{ rotate: isOpen ? 135 : 0, y: isOpen ? -8 : 0 }}
-                    transition={{ delay: 0.4}}
-                />
+                <motion.svg
+                    aria-hidden="true"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    className="h-7 w-7"
+                    initial={{ rotate: isOpen ? 180 : 0 }}
+                    animate={{ rotate: isOpen ? 180 : 0 }}
+                    transition={{ type: "tween", duration: 0.2 }}
+                >
+                    <path d="m10 5 7 7-7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                </motion.svg>
             </button>
         </motion.div>
     )

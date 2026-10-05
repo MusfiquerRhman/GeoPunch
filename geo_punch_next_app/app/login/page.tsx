@@ -12,6 +12,8 @@ const Login = () => {
     const router = useRouter();
 
     const [error, seterror] = useState("");
+    const [isCheckingSession, setIsCheckingSession] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const form = useForm({
         resolver: zodResolver(loginSchema),
@@ -29,10 +31,13 @@ const Login = () => {
             .then((session) => {
                 if (session?.authenticated && session.isAdmin) router.replace("/attendance/check-in");
             })
-            .catch(() => undefined);
+            .catch(() => undefined)
+            .finally(() => setIsCheckingSession(false));
     }, [router]);
 
     const onSubmit = async (data: any) => {
+        setIsSubmitting(true);
+        seterror("");
         try {
             const res = await fetch("/api/auth/login", {
                 method: "POST",
@@ -66,12 +71,28 @@ const Login = () => {
             seterror(
                 "An error occurred while trying to log in. Please try again."
             );
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
+    if (isCheckingSession) {
+        return (
+            <main className="flex min-h-screen items-center justify-center bg-gray-50 p-6" role="status" aria-label="Checking session">
+                <div className="w-full max-w-md space-y-5 rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+                    <div className="mx-auto h-12 w-40 animate-pulse rounded bg-gray-100" />
+                    <div className="mx-auto h-6 w-52 animate-pulse rounded bg-gray-100" />
+                    <div className="h-11 animate-pulse rounded-lg bg-gray-100" />
+                    <div className="h-11 animate-pulse rounded-lg bg-gray-100" />
+                    <span className="sr-only">Checking your session…</span>
+                </div>
+            </main>
+        );
+    }
+
     return (
         <div className="flex items-center justify-center h-screen">
-            <div className="w-full max-w-md p-8 space-y-6 bg-white rounded shadow">
+            <div className="w-full max-w-md space-y-6 rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
                 <Image
                     src={banner.src}
                     alt="GeoPunch Logo"
@@ -84,7 +105,7 @@ const Login = () => {
                     Login to Your Account
                 </h2>
 
-                <p className="text-red-500 text-center">
+                <p className="min-h-5 text-center text-sm text-red-600" role="alert">
                     {error}
                 </p>
 
@@ -106,7 +127,7 @@ const Login = () => {
                             required
                             placeholder="Enter your id card no"
                             {...register("id_card_no")}
-                            className="w-full px-3 py-2 mt-1 border rounded focus:outline-none focus:ring focus:border-blue-300"
+                            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
                         />
 
                         {errors.id_card_no?.message && (
@@ -129,7 +150,7 @@ const Login = () => {
                             id="password"
                             placeholder="Enter your password"
                             {...register("password")}
-                            className="w-full px-3 py-2 mt-1 border rounded focus:outline-none focus:ring focus:border-blue-300"
+                            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
                         />
 
                         {errors.password?.message && (
@@ -141,9 +162,10 @@ const Login = () => {
 
                     <button
                         type="submit"
-                        className="w-full px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700"
+                        disabled={isSubmitting}
+                        className="w-full rounded-lg bg-teal-700 px-4 py-2.5 font-medium text-white shadow-sm transition hover:bg-teal-800 disabled:cursor-wait disabled:opacity-70"
                     >
-                        Login
+                        {isSubmitting ? "Signing in…" : "Login"}
                     </button>
                 </form>
             </div>

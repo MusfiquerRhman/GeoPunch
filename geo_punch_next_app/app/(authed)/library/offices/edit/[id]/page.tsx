@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { use, useEffect, useState } from "react";
 import MapPicker from "@/components/LocationSelector";
 import { toast } from "sonner";
+import PageLoading from "@/components/UI/PageLoading";
 
 type OfficeDetailsPageProps = {
     params: Promise<{ id: string }>
@@ -28,6 +29,8 @@ export default function Edit({ params }: OfficeDetailsPageProps) {
 
     const [message, setMessage] = useState('')
     const [errorMessage, setErrorMessage] = useState("");
+    const [isLoading, setIsLoading] = useState(true);
+    const [loadError, setLoadError] = useState(false);
     const [companies, setCompanies] = useState([]);
 
     const { register, handleSubmit, formState: { errors }, setValue } = form;
@@ -139,30 +142,27 @@ export default function Edit({ params }: OfficeDetailsPageProps) {
 
     useEffect(() => {   
         const fetchOffice = async () => {
-            const res = await fetch(`/api/library/office/${id}`);
+            try {
+                const res = await fetch(`/api/library/office/${id}`);
+                if (!res.ok) throw new Error("Failed to fetch office");
+                const data = await res.json();
+                setValue("name", data.name);
+                setValue("company_id", data.company_id);
 
-            if (!res.ok) {
-                console.error("Failed to fetch office");
-                return;
-            }
-
-            const data = await res.json();
-            
-
-            // 🔥 set form values
-            setValue("name", data.name);
-            setValue("company_id", data.company_id);
-
-            // 🔥 map locations
-            if (data.office_locations?.length > 0) {
-                const mappedLocations = data.office_locations.map((loc: any) => ({
-                    id: loc.id,
-                    address: loc.address || "",
-                    lat: loc.latitude ?? null,
-                    lng: loc.longitude ?? null,
-                }));
-
-                setLocations(mappedLocations);
+                if (data.office_locations?.length > 0) {
+                    const mappedLocations = data.office_locations.map((loc: any) => ({
+                        id: loc.id,
+                        address: loc.address || "",
+                        lat: loc.latitude ?? null,
+                        lng: loc.longitude ?? null,
+                    }));
+                    setLocations(mappedLocations);
+                }
+            } catch (error) {
+                console.error("Error fetching office:", error);
+                setLoadError(true);
+            } finally {
+                setIsLoading(false);
             }
         };
 
@@ -182,9 +182,11 @@ export default function Edit({ params }: OfficeDetailsPageProps) {
             </p>
         )}
 
-      <form
+      {isLoading ? <PageLoading /> : loadError ? (
+        <p className="max-w-[550px] rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">Couldn’t load this office. Please go back and try again.</p>
+      ) : <form
         onSubmit={handleSubmit(onSubmit)}
-        className="flex flex-col gap-4 w-full max-w-[550] pb-16"
+        className="form-panel mb-16 flex max-w-[700px] flex-col gap-4"
       >
         <FormField
           label="Office Name"
@@ -196,9 +198,9 @@ export default function Edit({ params }: OfficeDetailsPageProps) {
 
         {/* Company Select */}
         <div className="flex w-full">
-            <label className="font-medium flex-1">Company ID</label>
+            <label className="flex-1 text-sm font-medium text-gray-700">Company ID</label>
             <select defaultValue={''} {...register("company_id")} 
-                className={`rounded-md px-2 py-1 border-2 border-primary w-[250] flex-3 ${form.formState.errors.company_id ? 'border-red-500' : ''}`}
+                className={`form-select flex-3 ${form.formState.errors.company_id ? 'border-red-500' : ''}`}
             >
                 <option disabled value="">Select Company</option>
                 {companies.map((c: any) => (
@@ -216,7 +218,7 @@ export default function Edit({ params }: OfficeDetailsPageProps) {
           {locations.map((loc, index) => (
             <div
               key={index}
-              className="p-3 rounded-md flex flex-col gap-3"
+              className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-gray-50/70 p-4"
             >
               <div className="flex justify-between items-center">
                 <h3 className="font-semibold">Location {index + 1}</h3>
@@ -238,7 +240,7 @@ export default function Edit({ params }: OfficeDetailsPageProps) {
                 placeholder="Enter address"
                 value={loc.address}
                 onChange={(e) => updateAddress(index, e.target.value)}
-                className="border-2 border-primary w-full px-2 py-1 rounded-md"
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
               />
 
               {/* Map Picker */}
@@ -260,7 +262,7 @@ export default function Edit({ params }: OfficeDetailsPageProps) {
         <button
           type="button"
           onClick={addLocation}
-          className="bg-gray-200 px-3 py-2 rounded-md"
+          className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
         >
           + Add Another Location
         </button>
@@ -268,11 +270,11 @@ export default function Edit({ params }: OfficeDetailsPageProps) {
         {/* Submit */}
         <button
           type="submit"
-          className="bg-primary text-white px-4 py-2 rounded-md"
+          className="rounded-lg bg-teal-700 px-4 py-2.5 font-medium text-white shadow-sm transition hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700"
         >
           Update Office
         </button>
-      </form>
+      </form>}
     </Wrapper>
   );
 }

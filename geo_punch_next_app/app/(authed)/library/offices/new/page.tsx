@@ -141,7 +141,7 @@ export default function NewOffice() {
 
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="flex flex-col gap-4 w-full max-w-[550] pb-16"
+        className="form-panel mb-16 flex max-w-[700px] flex-col gap-4"
       >
         <FormField
           label="Office Name"
@@ -153,10 +153,10 @@ export default function NewOffice() {
 
         {/* Company Select */}
         <div className="flex w-full">
-            <label className="font-medium flex-1">Company ID</label>
-            <div className="w-[250] flex-3">
+            <label className="flex-1 text-sm font-medium text-gray-700">Company ID</label>
+            <div className="min-w-0 flex-3">
               <select defaultValue={''} {...register("company_id")} 
-                className="rounded-md px-2 py-2 w-full border-2 border-primary flex-3"
+                className="form-select flex-3"
               >
                   <option disabled value="">Select Company</option>
                   {companies.map((c: any) => (
@@ -174,7 +174,7 @@ export default function NewOffice() {
           {locations.map((loc, index) => (
             <div
               key={index}
-              className="p-3 rounded-md flex flex-col gap-3"
+              className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-gray-50/70 p-4"
             >
               <div className="flex justify-between items-center">
                 <h3 className="font-semibold">Location {index + 1}</h3>
@@ -196,7 +196,7 @@ export default function NewOffice() {
                 placeholder="Enter address"
                 value={loc.address}
                 onChange={(e) => updateAddress(index, e.target.value)}
-                className="border-2 border-primary w-full px-2 py-1 rounded-md"
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
               />
 
               {/* Map Picker */}
@@ -218,7 +218,7 @@ export default function NewOffice() {
         <button
           type="button"
           onClick={addLocation}
-          className="bg-gray-200 px-3 py-2 rounded-md"
+          className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
         >
           + Add Another Location
         </button>
@@ -227,7 +227,7 @@ export default function NewOffice() {
         <button
           type="submit"
           disabled={isLoading}
-          className="bg-primary text-white px-4 py-2 rounded-md"
+          className="rounded-lg bg-teal-700 px-4 py-2.5 font-medium text-white shadow-sm transition hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 disabled:cursor-wait disabled:opacity-60"
         >
           {isLoading ? "Creating..." : "Create Office"}
         </button>

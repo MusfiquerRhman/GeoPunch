@@ -16,7 +16,7 @@ const TableCell = ({children, className, colSpan, fixedLength = true}: TableCell
 
     return (
         <td colSpan={colSpan} 
-            className={clsx("border-r-2 text-[0.8rem] border-gray/20 p-1 text-wrap w-fit max-w-[300px]", variant, className)}
+            className={clsx("border-t border-gray-100 px-4 py-3 text-center text-sm text-gray-700", variant, className)}
         >
             {children}
         </td>

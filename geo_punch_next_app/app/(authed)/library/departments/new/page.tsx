@@ -56,7 +56,7 @@ export default function NewDepartment() {
             {errorMessage && <p className="w-full max-w-[550] text-red-500 border border-red-500 p-2 bg-red-50 rounded-md mb-4">
                 {errorMessage}
             </p>}
-            <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 w-full max-w-[550]">
+            <form onSubmit={handleSubmit(onSubmit)} className="form-panel flex max-w-[550px] flex-col gap-4">
                 <FormField  
                     label="Department Name"
                     name="department_name"
@@ -64,7 +64,7 @@ export default function NewDepartment() {
                     register={register}
                     errors={form.formState.errors.department_name}
                 />
-                <button type="submit" className="bg-primary text-white px-4 py-2 rounded-md" disabled={isLoading}>
+                <button type="submit" className="rounded-lg bg-teal-700 px-4 py-2.5 font-medium text-white shadow-sm transition hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 disabled:cursor-wait disabled:opacity-60" disabled={isLoading}>
                     {isLoading ? "Creating..." : "Create Department"}
                 </button>
             </form>

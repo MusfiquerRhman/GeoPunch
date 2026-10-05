@@ -2,7 +2,7 @@ import React from "react";
 
 const TableBody = ({ children }: { children: React.ReactNode }) => {
     return (
-        <tbody className="rounded-lg border-b-2 border-gray/20">
+        <tbody className="text-sm text-gray-700">
             {children}
         </tbody>
     );

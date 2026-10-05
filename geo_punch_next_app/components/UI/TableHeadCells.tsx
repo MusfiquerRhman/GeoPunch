@@ -3,7 +3,7 @@ import React from "react";
 
 const TableHeadCells = ({ children, className, isAction }: { children: React.ReactNode; className?: string; isAction?: boolean }) => {
     return (
-        <th className={clsx("p-2 border-r-2 border-white/20 font-lato", className, isAction ? "w-20" : undefined)}>
+        <th className={clsx("border-b border-gray-200 px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide", className, isAction ? "w-20 text-right" : undefined)}>
             {children}
         </th>
     );
