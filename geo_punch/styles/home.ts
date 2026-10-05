@@ -21,6 +21,11 @@ export const homeStyles = StyleSheet.create({
     flex: 1,
     height: 300,
     marginVertical: 16,
+    overflow: 'hidden',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#e5ece9',
+    backgroundColor: '#fff',
   },
   map: {
     width: '100%',
@@ -30,6 +35,8 @@ export const homeStyles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#f7faf9',
   },
   camera_container: {
     justifyContent: "center",   // vertical center
@@ -49,48 +56,52 @@ export const homeStyles = StyleSheet.create({
     elevation: 5,
   },
   cardContainer: {
-    backgroundColor: "#FEFEFE",
-    marginTop: 16,
-    padding: 20,
-    borderRadius: 24,
+    backgroundColor: "#fff",
+    marginTop: 8,
+    padding: 18,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#e5ece9",
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 1,
+      height: 2,
     },
-    shadowOpacity: 0.3,
-    shadowRadius: 2,
-    elevation: 3,
+    shadowOpacity: 0.05,
+    shadowRadius: 9,
+    elevation: 1,
   },
 
   cardLabel: {
-    color: "#a1a1aa",
+    color: "#66736f",
     fontSize: 14,
     marginBottom: 6,
   },
 
   officeName: {
     color: "#18181b",
-    fontSize: 24,
+    fontSize: 21,
     fontWeight: "700",
     marginBottom: 16,
   },
 
   addressBox: {
-    backgroundColor: "#EFEFEF",
-    padding: 16,
-    borderRadius: 16,
+    backgroundColor: "#f5f8f7",
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#e8efec",
     marginBottom: 18,
   },
 
   addressLabel: {
-    color: "#a1a1aa",
+    color: "#66736f",
     fontSize: 13,
     marginBottom: 4,
   },
 
   addressText: {
-    color: "#18181b",
+    color: "#263632",
     fontSize: 16,
     lineHeight: 22,
   },
@@ -102,32 +113,52 @@ export const homeStyles = StyleSheet.create({
   },
 
   distanceBadge: {
-    backgroundColor: "rgba(16,185,129,0.15)",
+    backgroundColor: "#e6f5f1",
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: "rgba(16,185,129,0.3)",
+    borderColor: "#c5e8df",
   },
 
   distanceText: {
-    color: "#34d399",
+    color: "#0f766e",
     fontSize: 14,
     fontWeight: "600",
   },
 
   nearbyBadge: {
-    backgroundColor: "rgba(59,130,246,0.15)",
+    backgroundColor: "#eff6ff",
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: "rgba(59,130,246,0.3)",
+    borderColor: "#dbeafe",
   },
 
   nearbyText: {
-    color: "#60a5fa",
+    color: "#1d4ed8",
     fontSize: 14,
     fontWeight: "600",
+  },
+  locationDetails: {
+    padding: 16,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#e5ece9',
+    backgroundColor: '#fff',
+    gap: 8,
+  },
+  locationLabel: {
+    color: '#66736f',
+    fontSize: 12,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  locationValue: {
+    color: '#263632',
+    fontSize: 14,
+    lineHeight: 20,
   },
 });

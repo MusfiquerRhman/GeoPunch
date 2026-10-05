@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
 
 type AttendanceRecord = {
@@ -32,9 +33,9 @@ async function getAddress(latitude: number, longitude: number) {
 }
 
 function statusLabel(status: number) {
-  if (status === 1) return { label: "Pending", color: "#a15c00" };
-  if (status === 2) return { label: "Approved", color: "#18794e" };
-  return { label: "Rejected", color: "#b42318" };
+  if (status === 1) return { label: "Pending", color: "#92400e", background: "#fef3c7" };
+  if (status === 2) return { label: "Approved", color: "#166534", background: "#dcfce7" };
+  return { label: "Rejected", color: "#b42318", background: "#fee2e2" };
 }
 
 export default function AttendanceCard({ item, baseUrl, token }: Props) {
@@ -65,11 +66,22 @@ export default function AttendanceCard({ item, baseUrl, token }: Props) {
       />
 
       <View style={styles.info}>
-        <Text style={[styles.title, { color: status.color }]}>{status.label}</Text>
-        <Text style={styles.text}>📍 {address}</Text>
-        <Text style={styles.text}>
-          🕒 {Number.isNaN(submittedAt.getTime()) ? "Time unavailable" : submittedAt.toLocaleString()}
-        </Text>
+        <View style={styles.topRow}>
+          <Text style={styles.title}>Attendance</Text>
+          <View style={[styles.statusBadge, { backgroundColor: status.background }]}>
+            <Text style={[styles.statusText, { color: status.color }]}>{status.label}</Text>
+          </View>
+        </View>
+        <View style={styles.detailRow}>
+          <Ionicons name="location-outline" size={16} color="#0f766e" />
+          <Text style={styles.text} numberOfLines={2}>{address}</Text>
+        </View>
+        <View style={styles.detailRow}>
+          <Ionicons name="time-outline" size={16} color="#66736f" />
+          <Text style={styles.text}>
+            {Number.isNaN(submittedAt.getTime()) ? "Time unavailable" : submittedAt.toLocaleString()}
+          </Text>
+        </View>
         <Text style={styles.id}>ID: {item.id}</Text>
       </View>
     </View>
@@ -80,35 +92,59 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: "row",
     backgroundColor: "#fff",
-    padding: 12,
-    marginVertical: 4,
-    marginHorizontal: 10,
-    borderRadius: 14,
+    padding: 14,
+    marginVertical: 6,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "#e5ece9",
     shadowColor: "#000",
-    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
     shadowRadius: 8,
-    elevation: 3,
+    elevation: 1,
     alignItems: "center",
   },
   image: {
-    width: 90,
-    height: 90,
-    borderRadius: 12,
-    backgroundColor: "#eee",
+    width: 82,
+    height: 92,
+    borderRadius: 14,
+    backgroundColor: "#f1f5f4",
   },
   info: {
     flex: 1,
-    marginLeft: 12,
+    marginLeft: 14,
+    gap: 7,
+  },
+  topRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
   },
   title: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "700",
-    marginBottom: 4,
+    color: "#172522",
+  },
+  statusBadge: {
+    borderRadius: 999,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+  },
+  statusText: {
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  detailRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 6,
   },
   text: {
     fontSize: 13,
-    color: "#444",
-    marginTop: 2,
+    lineHeight: 18,
+    color: "#52615c",
+    flex: 1,
   },
   id: {
     marginTop: 6,

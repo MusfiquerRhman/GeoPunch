@@ -41,7 +41,6 @@ export default function Login() {
       style={{ flex: 1 }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      {/* dismiss keyboard on tap */}
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView
           contentContainerStyle={styles.container}
@@ -55,9 +54,10 @@ export default function Login() {
             />
 
             <ThemedText style={styles.title}>Login to Your Account</ThemedText>
+            <ThemedText style={styles.helperText}>Sign in to record and review your attendance.</ThemedText>
 
             {errorMessage && (
-              <ThemedText style={{ color: "red", marginBottom: 10 }}>
+              <ThemedText accessibilityRole="alert" style={styles.errorMessage}>
                 {errorMessage}
               </ThemedText>
             )}
@@ -68,6 +68,7 @@ export default function Login() {
               onChangeText={(value) => { setIdCard(value); setErrorMessage(null); }}
               autoCapitalize="none"
               autoCorrect={false}
+              accessibilityLabel="ID card number"
               placeholder="Enter your id card no"
               style={styles.input}
               returnKeyType="next"
@@ -79,11 +80,13 @@ export default function Login() {
               onChangeText={(value) => { setPassword(value); setErrorMessage(null); }}
               placeholder="Enter your password"
               secureTextEntry
+              autoCapitalize="none"
               style={styles.input}
               returnKeyType="done"
+              onSubmitEditing={() => void handleLogin()}
             />
 
-            <TouchableOpacity style={[styles.button, isSubmitting && { opacity: 0.7 }]} onPress={() => void handleLogin()} disabled={isSubmitting}>
+            <TouchableOpacity accessibilityRole="button" style={[styles.button, isSubmitting && { opacity: 0.7 }]} onPress={() => void handleLogin()} disabled={isSubmitting}>
               {isSubmitting ? <ActivityIndicator color="#fff" /> : <ThemedText style={styles.buttonText}>Login</ThemedText>}
             </TouchableOpacity>
           </View>
@@ -96,7 +99,7 @@ export default function Login() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f4f6f8",
+    backgroundColor: "#f7faf9",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -110,56 +113,80 @@ const styles = StyleSheet.create({
     width: "90%",
     maxWidth: 380,
     backgroundColor: "#fff",
-    padding: 25,
-    borderRadius: 12,
+    padding: 24,
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: "#e5ece9",
 
     shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 5,
+    shadowOpacity: 0.06,
+    shadowRadius: 14,
+    elevation: 2,
   },
 
   logo: {
     width: 300,
     height: 150,
     alignSelf: "center",
-    marginBottom: 10,
+    marginBottom: 6,
   },
 
   title: {
     fontSize: 20,
     fontWeight: "700",
     textAlign: "center",
-    marginBottom: 20,
-    color: "#000",
+    marginBottom: 6,
+    color: "#172522",
+  },
+
+  helperText: {
+    textAlign: "center",
+    color: "#66736f",
+    fontSize: 13,
+    lineHeight: 19,
+    marginBottom: 16,
   },
 
   label: {
     fontSize: 14,
-    marginBottom: 5,
-    color: "#1f2937",
+    marginBottom: 6,
+    color: "#394944",
+    fontWeight: "600",
   },
 
   input: {
     borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 6,
-    padding: 10,
-    marginBottom: 15,
+    borderColor: "#d6e0dc",
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginBottom: 16,
     fontSize: 14,
+    color: "#172522",
+    backgroundColor: "#fff",
   },
 
   button: {
-    backgroundColor: "#0d6efd",
-    padding: 12,
-    borderRadius: 6,
-    marginTop: 5,
+    backgroundColor: "#0f766e",
+    paddingVertical: 14,
+    borderRadius: 13,
+    marginTop: 4,
   },
 
   buttonText: {
     color: "#fff",
     textAlign: "center",
     fontWeight: "600",
-    fontSize: 16,
+    fontSize: 15,
+  },
+
+  errorMessage: {
+    color: "#b42318",
+    fontSize: 13,
+    lineHeight: 19,
+    marginBottom: 12,
+    padding: 11,
+    borderRadius: 10,
+    backgroundColor: "#fef2f2",
   },
 });

@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from "react-native";
 
 import AttendanceCard from "@/components/attendenceCard";
 import ParallaxScrollView from "@/components/parallax-scroll-view";
 import { ThemedText } from "@/components/themed-text";
-import { Fonts } from "@/constants/theme";
+import { Colors, Fonts } from "@/constants/theme";
 import { apiRequest } from "@/constants/apiRequest";
 import { BASE_URL } from "@/constants/API_URL";
 import { useAuth } from "@/context/AuthContext";
@@ -41,7 +41,7 @@ export default function HistoryScreen() {
 
   return (
     <ParallaxScrollView
-      headerBackgroundColor={{ light: "#D0D0D0", dark: "#353636" }}
+      headerBackgroundColor={{ light: "#dff3ef", dark: "#203b35" }}
       headerImage={<Image source={require("@/assets/images/Banner.jpeg")} style={styles.reactLogo} />}
     >
       <View style={styles.titleContainer}>
@@ -50,16 +50,27 @@ export default function HistoryScreen() {
         </ThemedText>
       </View>
 
-      {isLoading ? <ThemedText>Loading attendance...</ThemedText> : null}
+      {isLoading ? (
+        <View style={styles.stateCard} accessibilityRole="progressbar">
+          <ActivityIndicator color={Colors.light.tint} />
+          <ThemedText style={styles.stateText}>Loading your attendance…</ThemedText>
+        </View>
+      ) : null}
       {error ? (
-        <View>
-          <ThemedText>Could not load attendance: {error.message}</ThemedText>
+        <View style={styles.stateCard}>
+          <ThemedText style={styles.stateTitle}>Couldn’t load attendance</ThemedText>
+          <ThemedText style={styles.stateText}>{error.message}</ThemedText>
           <TouchableOpacity onPress={() => void refetch()} style={styles.retryButton}>
-            <ThemedText style={styles.retryText}>Retry</ThemedText>
+            <ThemedText style={styles.retryText}>Try again</ThemedText>
           </TouchableOpacity>
         </View>
       ) : null}
-      {!isLoading && !error && attendance.length === 0 ? <ThemedText>No attendance records yet.</ThemedText> : null}
+      {!isLoading && !error && attendance.length === 0 ? (
+        <View style={styles.stateCard}>
+          <ThemedText style={styles.stateTitle}>No attendance yet</ThemedText>
+          <ThemedText style={styles.stateText}>Your submitted check-ins will appear here.</ThemedText>
+        </View>
+      ) : null}
 
       {attendance.map((item) => (
         <AttendanceCard key={item.id} item={item} baseUrl={BASE_URL} token={token} />
@@ -78,6 +89,7 @@ const styles = StyleSheet.create({
   titleContainer: {
     flexDirection: "row",
     gap: 8,
+    marginBottom: 2,
   },
   reactLogo: {
     height: "83%",
@@ -88,14 +100,34 @@ const styles = StyleSheet.create({
   },
   retryButton: {
     alignSelf: "flex-start",
-    backgroundColor: "#007AFF",
-    borderRadius: 8,
-    marginTop: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 9,
+    backgroundColor: "#0f766e",
+    borderRadius: 12,
+    marginTop: 14,
+    paddingHorizontal: 18,
+    paddingVertical: 11,
   },
   retryText: {
     color: "#fff",
     fontWeight: "600",
+  },
+  stateCard: {
+    alignItems: "center",
+    gap: 10,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "#e5ece9",
+    backgroundColor: "#fff",
+    padding: 24,
+  },
+  stateTitle: {
+    color: "#172522",
+    fontSize: 16,
+    fontWeight: "700",
+    textAlign: "center",
+  },
+  stateText: {
+    color: "#66736f",
+    fontSize: 14,
+    textAlign: "center",
   },
 });

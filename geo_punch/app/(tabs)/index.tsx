@@ -53,6 +53,7 @@ export default function HomeScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [nearestOffice, setNearestOffice] = useState<NearestOffice | null>(null);
   const [nearestOfficeError, setNearestOfficeError] = useState<string | null>(null);
+  const [isFindingOffice, setIsFindingOffice] = useState(false);
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
 
   const officesQuery = useQuery({
@@ -107,12 +108,14 @@ export default function HomeScreen() {
     if (!location) {
       setAddress("Finding address...");
       setNearestOffice(null);
+      setIsFindingOffice(false);
       return () => {
         isCurrent = false;
       };
     }
 
     const { latitude, longitude } = location.coords;
+    setAddress("Finding address...");
     void Location.reverseGeocodeAsync({ latitude, longitude })
       .then((result) => {
         if (isCurrent) setAddress(formatAddress(result));
@@ -122,6 +125,9 @@ export default function HomeScreen() {
       });
 
     if (token) {
+      setNearestOffice(null);
+      setNearestOfficeError(null);
+      setIsFindingOffice(true);
       void apiRequest<{ nearest_office: NearestOffice }>("/geo_punch/get_distance", {
         method: "POST",
         token,
@@ -133,12 +139,14 @@ export default function HomeScreen() {
           if (isCurrent) {
             setNearestOffice(result.nearest_office);
             setNearestOfficeError(null);
+            setIsFindingOffice(false);
           }
         })
         .catch((error: unknown) => {
           if (isCurrent) {
             setNearestOffice(null);
             setNearestOfficeError(error instanceof Error ? error.message : "Could not find a nearby office.");
+            setIsFindingOffice(false);
           }
         });
     }
@@ -222,14 +230,17 @@ export default function HomeScreen() {
 
   return (
     <ParallaxScrollView
-      headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
+      headerBackgroundColor={{ light: "#dff3ef", dark: "#203b35" }}
       headerImage={<Image source={require("@/assets/images/Banner.jpeg")} style={homeStyles.reactLogo} />}
     >
       <ThemedText type="title">Attendance</ThemedText>
+      <ThemedText style={{ marginTop: -6, color: "#66736f", fontSize: 14 }}>
+        Take a selfie and confirm your current location to check in.
+      </ThemedText>
 
       {photoUri && (
-        <View style={{ marginTop: 20, alignItems: "center" }}>
-          <Image source={{ uri: photoUri }} style={{ width: "100%", height: 300, borderRadius: 10 }} />
+        <View style={{ marginTop: 4, alignItems: "center", borderRadius: 18, borderWidth: 1, borderColor: "#e5ece9", padding: 12, backgroundColor: "#fff" }}>
+          <Image source={{ uri: photoUri }} style={{ width: "100%", height: 280, borderRadius: 14, backgroundColor: "#f1f5f4" }} contentFit="cover" />
           <TouchableOpacity
             onPress={() => {
               setPhotoUri(null);
@@ -258,7 +269,8 @@ export default function HomeScreen() {
       )}
 
       {!showCamera && !photoUri && (
-        <TouchableOpacity onPress={() => void openCamera()} style={[buttonStyle, { backgroundColor: "#007A74" }]}>
+        <TouchableOpacity accessibilityRole="button" onPress={() => void openCamera()} style={buttonStyle}>
+          <Ionicons name="camera-outline" size={19} color="#fff" />
           <ThemedText style={buttonTextStyle}>Take selfie</ThemedText>
         </TouchableOpacity>
       )}
@@ -302,22 +314,31 @@ export default function HomeScreen() {
           )
         ) : (
           <View style={homeStyles.loading}>
-            {locationLoading ? <ActivityIndicator /> : null}
-            <ThemedText>{locationError ?? "Waiting for location..."}</ThemedText>
+            {locationLoading ? <ActivityIndicator color="#0f766e" /> : null}
+            <ThemedText>{locationLoading ? "Getting your current location…" : "Location not available"}</ThemedText>
           </View>
         )}
       </View>
 
-      <ThemedText>Approximate location: {address}</ThemedText>
-      {!!location && (
-        <ThemedText>
-          GPS accuracy: {location.coords.accuracy == null ? "unknown" : `±${Math.round(location.coords.accuracy)} m`}
-        </ThemedText>
-      )}
-      {locationError ? <ThemedText style={{ color: "#b42318" }}>{locationError}</ThemedText> : null}
-      <TouchableOpacity onPress={() => void refreshLocation()} disabled={locationLoading} style={buttonStyle}>
-        <ThemedText style={buttonTextStyle}>{locationLoading ? "Refreshing location..." : "Refresh location"}</ThemedText>
-      </TouchableOpacity>
+      <View style={homeStyles.locationDetails}>
+        <ThemedText style={homeStyles.locationLabel}>Current location</ThemedText>
+        <ThemedText style={homeStyles.locationValue}>{address}</ThemedText>
+        {!!location && (
+          <ThemedText style={{ color: "#66736f", fontSize: 12 }}>
+            GPS accuracy {location.coords.accuracy == null ? "unavailable" : `±${Math.round(location.coords.accuracy)} m`}
+          </ThemedText>
+        )}
+        {locationError ? <ThemedText style={{ color: "#b42318", fontSize: 13 }}>{locationError}</ThemedText> : null}
+        <TouchableOpacity
+          accessibilityRole="button"
+          onPress={() => void refreshLocation()}
+          disabled={locationLoading}
+          style={[secondaryButtonStyle, locationLoading && { opacity: 0.65 }]}
+        >
+          {locationLoading ? <ActivityIndicator size="small" color="#0f766e" /> : <Ionicons name="refresh-outline" size={17} color="#0f766e" />}
+          <ThemedText style={secondaryButtonTextStyle}>{locationLoading ? "Refreshing location…" : "Refresh location"}</ThemedText>
+        </TouchableOpacity>
+      </View>
 
       {nearestOffice ? (
         <View style={homeStyles.cardContainer}>
@@ -333,16 +354,37 @@ export default function HomeScreen() {
             </View>
           </View>
         </View>
+      ) : isFindingOffice ? (
+        <View style={[homeStyles.locationDetails, { flexDirection: "row", alignItems: "center" }]}>
+          <ActivityIndicator size="small" color="#0f766e" />
+          <ThemedText style={homeStyles.locationValue}>Finding the nearest office…</ThemedText>
+        </View>
       ) : nearestOfficeError ? (
-        <ThemedText>{nearestOfficeError}</ThemedText>
+        <View style={noticeStyle}>
+          <ThemedText style={{ color: "#92400e", fontSize: 13 }}>{nearestOfficeError}</ThemedText>
+        </View>
       ) : null}
 
-      {officesQuery.isError ? <ThemedText>Could not load office locations.</ThemedText> : null}
+      {officesQuery.isLoading ? (
+        <View style={[homeStyles.locationDetails, { flexDirection: "row", alignItems: "center" }]}>
+          <ActivityIndicator size="small" color="#0f766e" />
+          <ThemedText style={homeStyles.locationValue}>Loading office locations…</ThemedText>
+        </View>
+      ) : null}
+
+      {officesQuery.isError ? (
+        <View style={noticeStyle}>
+          <ThemedText style={{ color: "#b42318", fontSize: 13 }}>Couldn’t load office locations.</ThemedText>
+          <TouchableOpacity onPress={() => void officesQuery.refetch()}>
+            <ThemedText style={{ color: "#0f766e", fontWeight: "700" }}>Try again</ThemedText>
+          </TouchableOpacity>
+        </View>
+      ) : null}
 
       <TouchableOpacity
         onPress={() => void submitAttendance()}
         disabled={isSubmitting}
-        style={[buttonStyle, { backgroundColor: isSubmitting ? "#7998bd" : "#007AFF" }]}
+        style={[buttonStyle, { marginTop: 2, opacity: isSubmitting ? 0.7 : 1 }]}
       >
         {isSubmitting ? <ActivityIndicator color="#fff" /> : <ThemedText style={buttonTextStyle}>Submit attendance</ThemedText>}
       </TouchableOpacity>
@@ -353,13 +395,46 @@ export default function HomeScreen() {
 const buttonStyle = {
   marginTop: 10,
   width: "100%" as const,
-  backgroundColor: "#007AFF",
-  paddingVertical: 12,
-  borderRadius: 10,
+  backgroundColor: "#0f766e",
+  paddingVertical: 14,
+  borderRadius: 14,
   alignItems: "center" as const,
+  justifyContent: "center" as const,
+  flexDirection: "row" as const,
+  gap: 8,
+  shadowColor: "#0f766e",
+  shadowOffset: { width: 0, height: 3 },
+  shadowOpacity: 0.13,
+  shadowRadius: 7,
+  elevation: 2,
 };
 
 const buttonTextStyle = { color: "#fff", fontWeight: "600" as const };
+const secondaryButtonStyle = {
+  alignSelf: "flex-start" as const,
+  flexDirection: "row" as const,
+  alignItems: "center" as const,
+  gap: 7,
+  marginTop: 4,
+  borderRadius: 12,
+  borderWidth: 1,
+  borderColor: "#c5e8df",
+  backgroundColor: "#f3fbf8",
+  paddingHorizontal: 13,
+  paddingVertical: 9,
+};
+const secondaryButtonTextStyle = { color: "#0f766e", fontWeight: "600" as const, fontSize: 13 };
+const noticeStyle = {
+  flexDirection: "row" as const,
+  alignItems: "center" as const,
+  justifyContent: "space-between" as const,
+  gap: 12,
+  padding: 14,
+  borderRadius: 14,
+  borderWidth: 1,
+  borderColor: "#e5ece9",
+  backgroundColor: "#fff",
+};
 const cameraControlsStyle = {
   position: "absolute" as const,
   bottom: 20,

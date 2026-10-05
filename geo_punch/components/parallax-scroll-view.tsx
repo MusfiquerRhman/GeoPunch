@@ -11,7 +11,7 @@ import { ThemedView } from '@/components/themed-view';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 
-const HEADER_HEIGHT = 180;
+const HEADER_HEIGHT = 150;
 
 type Props = PropsWithChildren<{
   headerImage: ReactElement;
@@ -63,17 +63,15 @@ export default function ParallaxScrollView({
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   header: {
-    height: HEADER_HEIGHT,
+    height: 150,
     overflow: 'hidden',
   },
   content: {
     flex: 1,
-    padding: 32,
-    gap: 16,
-    overflow: 'hidden',
+    paddingHorizontal: 18,
+    paddingTop: 24,
+    paddingBottom: 32,
+    gap: 14,
   },
 });
