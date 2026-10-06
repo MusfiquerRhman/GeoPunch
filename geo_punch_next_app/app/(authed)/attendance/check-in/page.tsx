@@ -27,7 +27,6 @@ type TabType = 0 | 1 | 2;
 
 const CheckInPage = () => {
     const [page, setpage] = useState(0);
-
     const [status, setStatus] = useState<TabType>(1);
 
     const handleTabChange = (tab: TabType) => {
