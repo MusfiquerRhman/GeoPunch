@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
+import { Ionicons } from "@expo/vector-icons";
 import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from "react-native";
 
 import AttendanceCard from "@/components/attendenceCard";
@@ -25,6 +26,7 @@ export default function HistoryScreen() {
   const {
     data: attendance = [],
     isLoading,
+    isFetching,
     error,
     refetch,
   } = useQuery({
@@ -40,6 +42,7 @@ export default function HistoryScreen() {
   });
 
   return (
+    <View style={styles.screen}>
     <ParallaxScrollView
       headerBackgroundColor={{ light: "#dff3ef", dark: "#203b35" }}
       headerImage={<Image source={require("@/assets/images/Banner.jpeg")} style={styles.reactLogo} />}
@@ -81,11 +84,49 @@ export default function HistoryScreen() {
           Showing the latest 20 records.
         </ThemedText>
       ) : null}
+      <View style={styles.refreshSpace} />
     </ParallaxScrollView>
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessibilityLabel="Refresh attendance history"
+        accessibilityState={{ disabled: isFetching || !token, busy: isFetching }}
+        disabled={isFetching || !token}
+        onPress={() => void refetch()}
+        style={styles.refreshButton}
+      >
+        {isFetching ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Ionicons name="refresh" size={25} color="#fff" />
+        )}
+      </TouchableOpacity>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+  },
+  refreshSpace: {
+    height: 64,
+  },
+  refreshButton: {
+    position: "absolute",
+    right: 20,
+    bottom: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "#0f766e",
+    alignItems: "center",
+    justifyContent: "center",
+    elevation: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+  },
   titleContainer: {
     flexDirection: "row",
     gap: 8,

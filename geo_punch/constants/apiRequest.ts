@@ -1,4 +1,5 @@
 import { getApiUrl } from "./API_URL";
+import { fetch as expoFetch } from "expo/fetch";
 
 export class ApiError extends Error {
   constructor(
@@ -24,10 +25,13 @@ export async function apiRequest<T>(
 
   if (token) headers.set("Authorization", `Bearer ${token}`);
 
-  const response = await fetch(getApiUrl(path), {
-    ...requestOptions,
-    headers,
-  });
+  const response = requestOptions.body instanceof FormData
+    ? await expoFetch(getApiUrl(path), {
+        method: requestOptions.method,
+        body: requestOptions.body,
+        headers,
+      })
+    : await fetch(getApiUrl(path), { ...requestOptions, headers });
 
   let body: unknown;
   try {

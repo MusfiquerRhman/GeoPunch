@@ -1,6 +1,28 @@
 import { StyleSheet } from 'react-native';
 
 export const homeStyles = StyleSheet.create({
+  successBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 16,
+    borderRadius: 16,
+    backgroundColor: '#e6f5f1',
+    borderWidth: 1,
+    borderColor: '#c5e8df',
+  },
+  successTitle: {
+    color: '#0f766e',
+    fontSize: 16,
+    fontWeight: '700',
+    lineHeight: 22,
+  },
+  successMessage: {
+    color: '#263632',
+    fontSize: 14,
+    lineHeight: 20,
+    marginTop: 4,
+  },
   titleContainer: {
     flexDirection: 'row',
     alignItems: 'center',

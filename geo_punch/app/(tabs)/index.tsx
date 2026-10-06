@@ -3,6 +3,7 @@ import { Alert, ActivityIndicator, Text, TouchableOpacity, View } from "react-na
 import { CameraView, useCameraPermissions } from "expo-camera";
 import * as Location from "expo-location";
 import { Image } from "expo-image";
+import { File } from "expo-file-system";
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -51,6 +52,7 @@ export default function HomeScreen() {
   const [showCamera, setShowCamera] = useState(false);
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [attendanceSubmitted, setAttendanceSubmitted] = useState(false);
   const [nearestOffice, setNearestOffice] = useState<NearestOffice | null>(null);
   const [nearestOfficeError, setNearestOfficeError] = useState<string | null>(null);
   const [isFindingOffice, setIsFindingOffice] = useState(false);
@@ -171,11 +173,14 @@ export default function HomeScreen() {
     try {
       const photo = await cameraRef.current?.takePictureAsync({
         quality: 0.75,
-        skipProcessing: true,
+        // Convert emulator PNG captures to JPEG before uploading as image/jpeg.
+        skipProcessing: false,
+        imageType: "jpg",
       });
       if (!photo?.uri) throw new Error("The camera did not return a photo.");
 
       setPhotoUri(photo.uri);
+      setAttendanceSubmitted(false);
       setShowCamera(false);
     } catch (error) {
       Alert.alert("Could not take selfie", error instanceof Error ? error.message : "Please try again.");
@@ -202,11 +207,14 @@ export default function HomeScreen() {
       }
 
       const formData = new FormData();
-      formData.append("photo", {
-        uri: photoUri,
-        name: "attendance-selfie.jpg",
-        type: "image/jpeg",
-      } as unknown as Blob);
+      const photoFile = new File(photoUri);
+      if (!photoFile.exists || photoFile.size === 0) {
+        throw new Error("The selfie file is unavailable. Retake your selfie and try again.");
+      }
+      if (photoFile.size > 5 * 1024 * 1024) {
+        throw new Error("The selfie is larger than 5 MB. Retake your selfie and try again.");
+      }
+      formData.append("photo", photoFile, "attendance-selfie.jpg");
       formData.append("latitude", String(currentLocation.coords.latitude));
       formData.append("longitude", String(currentLocation.coords.longitude));
 
@@ -217,6 +225,7 @@ export default function HomeScreen() {
         body: formData,
       });
 
+      setAttendanceSubmitted(true);
       Alert.alert("Attendance recorded", "Your attendance was submitted successfully.");
       setPhotoUri(null);
       await queryClient.invalidateQueries({ queryKey: ["attendance"] });
@@ -234,8 +243,19 @@ export default function HomeScreen() {
       headerImage={<Image source={require("@/assets/images/Banner.jpeg")} style={homeStyles.reactLogo} />}
     >
       <ThemedText type="title">Attendance</ThemedText>
+      {attendanceSubmitted && (
+        <View accessibilityLiveRegion="polite" style={homeStyles.successBanner}>
+          <Ionicons name="checkmark-circle" size={26} color="#0f766e" />
+          <View style={{ flex: 1 }}>
+            <ThemedText style={homeStyles.successTitle}>Attendance submitted successfully</ThemedText>
+            <ThemedText style={homeStyles.successMessage}>Your check-in is recorded. You can view it in History.</ThemedText>
+          </View>
+        </View>
+      )}
       <ThemedText style={{ marginTop: -6, color: "#66736f", fontSize: 14 }}>
-        Take a selfie and confirm your current location to check in.
+        {attendanceSubmitted
+          ? "Take a new selfie when you’re ready for another check-in."
+          : "Take a selfie and confirm your current location to check in."}
       </ThemedText>
 
       {photoUri && (
