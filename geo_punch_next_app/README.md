@@ -18,6 +18,34 @@ Admin browser sessions use an HttpOnly cookie. Employee API sessions use the bea
 
 The repository-root database Compose file now requires `POSTGRES_PASSWORD` from a root `.env` file. Do not commit that file. The app's `.env` and the database's `.env` are separate because the two Compose projects are run independently.
 
+## Docker deployment and browser login
+
+Build and push the updated image from the source directory:
+
+```powershell
+docker build -t musfiquerrhman/geopunch:latest .
+docker push musfiquerrhman/geopunch:latest
+```
+
+On a server deploying the published image, keep the `image:` setting and remove the `build:` subsection from the server's Compose file. A build requires the source code and Dockerfile on that server. Pull the new image and recreate the container:
+
+```bash
+docker compose pull app
+docker compose up -d --no-build app
+```
+
+Browser login sets a cookie that requires HTTPS when `NODE_ENV=production`. Accessing the production app through an HTTP IP address can return a successful login response while the browser rejects the cookie and the protected page redirects back to login.
+
+For a temporary HTTP test only, add this to the server's app `.env` file and recreate the container:
+
+```dotenv
+AUTH_COOKIE_SECURE=false
+```
+
+This setting is read at runtime by both login endpoints and logout; it does not require another image build after the updated code has been deployed. Cookies remain HttpOnly with SameSite=Lax. HTTP leaves passwords and session tokens unencrypted in transit. For production, serve the app over HTTPS and remove this override or set `AUTH_COOKIE_SECURE=true`. An unset or unrecognized value keeps the existing production default.
+
+After signing in, check that the browser stores the `token` cookie and `/api/auth/session` returns 200. A 401 from that endpoint before signing in is expected.
+
 ## Getting Started
 
 First, run the development server:

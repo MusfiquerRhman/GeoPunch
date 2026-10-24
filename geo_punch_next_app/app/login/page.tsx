@@ -48,8 +48,6 @@ const Login = () => {
                 body: JSON.stringify(data),
             });
 
-            console.log("Login response:", res.ok);
-
             const result = await res.json();
 
             if (!res.ok) {

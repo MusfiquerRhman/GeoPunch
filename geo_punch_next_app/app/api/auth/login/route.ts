@@ -1,3 +1,4 @@
+import { isAuthCookieSecure } from "../../_utils/cookies";
 import { db } from "@/utils/prisma";
 import { signToken } from "../../_utils/jwt";
 import { NextResponse } from "next/server";
@@ -81,7 +82,7 @@ export async function POST(req: Request) {
 
   response.cookies.set("token", token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production", // important!
+    secure: isAuthCookieSecure(),
     path: "/",
     maxAge: 60 * 60 * 24 * 7,
     sameSite: "lax",
