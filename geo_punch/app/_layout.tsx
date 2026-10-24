@@ -1,20 +1,24 @@
 import { Redirect, Stack, useSegments } from "expo-router";
-import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
-import { useColorScheme } from "@/hooks/use-color-scheme";
+import { DefaultTheme, ThemeProvider } from "@react-navigation/native";
+import { StatusBar } from "expo-status-bar";
+import { Colors } from "@/constants/theme";
 import { AuthProvider, useAuth } from "../context/AuthContext";
 import { ActivityIndicator, View } from "react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const queryClient = new QueryClient();
+const appTheme = {
+  ...DefaultTheme,
+  colors: { ...DefaultTheme.colors, background: Colors.light.background, card: "#ffffff" },
+};
 
 function RootLayoutNav() {
-  const colorScheme = useColorScheme();
   const { token, loading } = useAuth();
   const segments = useSegments();
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#f7faf9" }}>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: Colors.light.background }}>
         <ActivityIndicator color="#0f766e" size="large" />
       </View>
     );
@@ -29,7 +33,7 @@ function RootLayoutNav() {
   if (!token && !inAuthGroup) return <Redirect href="/(auth)/login" />;
 
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={appTheme}>
       <Stack screenOptions={{ headerShown: false }} />
     </ThemeProvider>
   );
@@ -38,6 +42,7 @@ function RootLayoutNav() {
 export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
+      <StatusBar style="dark" />
       <AuthProvider>
         <RootLayoutNav />
       </AuthProvider>

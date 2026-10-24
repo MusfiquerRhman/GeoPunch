@@ -4,7 +4,7 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import * as Location from "expo-location";
 import { Image } from "expo-image";
 import { File } from "expo-file-system";
-import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import LocationMap from "@/components/location-map";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -28,8 +28,6 @@ type NearestOffice = {
   distance: number;
   office_location_id: number;
 };
-
-const hasGoogleMapsApiKey = Boolean(process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY);
 
 function formatAddress(addresses: Location.LocationGeocodedAddress[]) {
   const address = addresses[0];
@@ -297,41 +295,7 @@ export default function HomeScreen() {
 
       <View style={[homeStyles.container, { marginTop: 20 }]}>
         {location ? (
-          hasGoogleMapsApiKey ? (
-            <MapView
-              style={homeStyles.map}
-              provider={PROVIDER_GOOGLE}
-              region={{
-                latitude: location.coords.latitude,
-                longitude: location.coords.longitude,
-                latitudeDelta: 0.01,
-                longitudeDelta: 0.01,
-              }}
-            >
-              <Marker
-                coordinate={{ latitude: location.coords.latitude, longitude: location.coords.longitude }}
-                title="You are here"
-                description="Your current location"
-                pinColor="red"
-              />
-              {offices.map((office) => (
-                <Marker
-                  key={office.id}
-                  coordinate={{ latitude: office.latitude, longitude: office.longitude }}
-                  title={office.name}
-                  description={office.address}
-                  pinColor="blue"
-                />
-              ))}
-            </MapView>
-          ) : (
-            <View style={[homeStyles.loading, { padding: 16 }]}>
-              <ThemedText>Map preview needs an Android Google Maps API key.</ThemedText>
-              <ThemedText>
-                Current coordinates: {location.coords.latitude.toFixed(5)}, {location.coords.longitude.toFixed(5)}
-              </ThemedText>
-            </View>
-          )
+          <LocationMap latitude={location.coords.latitude} longitude={location.coords.longitude} offices={offices} />
         ) : (
           <View style={homeStyles.loading}>
             {locationLoading ? <ActivityIndicator color="#0f766e" /> : null}
@@ -343,6 +307,11 @@ export default function HomeScreen() {
       <View style={homeStyles.locationDetails}>
         <ThemedText style={homeStyles.locationLabel}>Current location</ThemedText>
         <ThemedText style={homeStyles.locationValue}>{address}</ThemedText>
+        {!!location && (
+          <ThemedText style={{ color: "#66736f", fontSize: 12 }}>
+            Coordinates: {location.coords.latitude.toFixed(5)}, {location.coords.longitude.toFixed(5)}
+          </ThemedText>
+        )}
         {!!location && (
           <ThemedText style={{ color: "#66736f", fontSize: 12 }}>
             GPS accuracy {location.coords.accuracy == null ? "unavailable" : `±${Math.round(location.coords.accuracy)} m`}

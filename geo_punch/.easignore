@@ -1,0 +1,18 @@
+# Include only files needed to build the mobile app.
+/*
+!/app/
+!/assets/
+!/components/
+!/constants/
+!/context/
+!/hooks/
+!/scripts/
+!/styles/
+!/app.config.ts
+!/app.json
+!/eas.json
+!/package.json
+!/package-lock.json
+!/tsconfig.json
+!/expo-env.d.ts
+!/eslint.config.js
