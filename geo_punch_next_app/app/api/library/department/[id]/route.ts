@@ -41,7 +41,7 @@ async function updateDepartment(request: Request, { params }: { params: Promise<
     }
     catch (error) {
         console.error("Error updating department:", error);
-        const err = handlePrismaError(error);
+        const err = handlePrismaError(error, "Department name already exists. Please use a different name.");
 
         return new Response(
             JSON.stringify({ message: err.message }),

@@ -47,7 +47,7 @@ async function createDepartment(req: Request): Promise<Response> {
     }
     catch (error) {
         console.error("Error creating department:", error);
-        const err = handlePrismaError(error);
+        const err = handlePrismaError(error, "Department name already exists. Please use a different name.");
 
         return new Response(
             JSON.stringify({ message: err.message }),

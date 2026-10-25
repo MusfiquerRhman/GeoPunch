@@ -73,17 +73,18 @@ export default function PunchCard({ record }: { record: PunchRecord }) {
     }
 
   return (
-    <div className="flex flex-row max-w-3xl w-full rounded-2xl border border-gray-200 bg-white shadow-md overflow-hidden hover:shadow-xl transition">
-      <div className="flex-1">
+    <div className="flex flex-row max-w-5xl w-full rounded-2xl border border-gray-200 bg-white shadow-md overflow-hidden hover:shadow-xl transition">
+      <div className="relative w-1/4 shrink-0 border-r border-gray-200">
+        <img
+          src={record.selfie_url}
+          alt="selfie"
+          onClick={() => setOpenImage(true)}
+          className="absolute inset-0 h-full w-full object-contain cursor-pointer"
+        />
+      </div>
+      <div className="min-w-0 flex-1">
       {/* Header */}
         <div className="p-4 flex items-center gap-4 border-b border-gray-300">
-          <img
-              src={record.selfie_url}
-              alt="selfie"
-              onClick={() => setOpenImage(true)}
-              className="w-14 h-14 rounded-full object-cover border cursor-pointer hover:scale-105 transition"
-            />
-
           <div className="flex-1">
             <h2 className="text-lg font-semibold text-gray-800">
               {record.employee.name}

@@ -1,13 +1,16 @@
 import { Prisma } from "@/app/generated/prisma/client";
 
-export function handlePrismaError(error: unknown): Error {
+export function handlePrismaError(
+  error: unknown,
+  duplicateMessage = "ID Card Number / Email already exists. Please use a different value",
+): Error {
   console.error("Prisma Error:", error);
 
   if (error instanceof Prisma.PrismaClientKnownRequestError) {
     switch (error.code) {
       case "P2002":
         // Unique constraint failed
-        return new Error(`ID Card Number / Email already exists. Please use a different value`);
+        return new Error(duplicateMessage);
 
       case "P2003":
         // Foreign key constraint failed
