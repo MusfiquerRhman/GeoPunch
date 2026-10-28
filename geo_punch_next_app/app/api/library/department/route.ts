@@ -1,6 +1,8 @@
 import { db } from "@/utils/prisma";
 import { handlePrismaError } from "../../_utils/handlePrismaError";
 import { withAdminAuth } from "../../_utils/auth";
+import { parseFormBody } from "@/app/api/_utils/formBody";
+import { departmentSchema } from "@/app/(authed)/library/departments/schema";
 
 async function listDepartments(request: Request): Promise<Response> {
     const { searchParams } = new URL(request.url);
@@ -8,6 +10,7 @@ async function listDepartments(request: Request): Promise<Response> {
     const search = searchParams.get("search") || "";
 
     const departments = await db.departments.findMany({
+        orderBy: { id: "asc" },
         skip: page * 10,
         take: 10,
         where: {
@@ -31,11 +34,9 @@ async function listDepartments(request: Request): Promise<Response> {
 }
 
 async function createDepartment(req: Request): Promise<Response> {
-    const { department_name } = await req.json();
-
-    if (!department_name || typeof department_name !== "string") {
-        return new Response("Invalid input", { status: 400 });
-    }
+    const parsed = await parseFormBody(req, departmentSchema);
+    if (parsed.response) return parsed.response;
+    const { department_name } = parsed.data;
 
     try {
         const newDepartment = await db.departments.create({

@@ -1,6 +1,8 @@
 import { handlePrismaError } from "@/app/api/_utils/handlePrismaError";
 import { db } from "@/utils/prisma";
 import { withAdminAuth } from "../../../_utils/auth";
+import { parseFormBody } from "@/app/api/_utils/formBody";
+import { companySchema } from "@/app/(authed)/library/company/schema";
 
 async function getCompany(request: Request,  { params }: { params: Promise<{ id: string }> }): Promise<Response> {
     const { id } = await params;
@@ -12,7 +14,7 @@ async function getCompany(request: Request,  { params }: { params: Promise<{ id:
     });
 
     if (!company) {
-        return new Response("Company not found", { status: 404 });
+        return Response.json({ message: "Company not found" }, { status: 404 });
     }
 
     return new Response(JSON.stringify(company), { status: 200 });
@@ -20,11 +22,9 @@ async function getCompany(request: Request,  { params }: { params: Promise<{ id:
 
 async function updateCompany(request: Request, { params }: { params: Promise<{ id: string }> }): Promise<Response> {
     const { id } = await params;
-    const { name } = await request.json();
-
-    if (!name || typeof name !== "string") {
-        return new Response("Invalid input", { status: 400 });
-    }
+    const parsed = await parseFormBody(request, companySchema);
+    if (parsed.response) return parsed.response;
+    const { name } = parsed.data;
 
     try {
         const updatedCompany = await db.company.update({

@@ -12,8 +12,8 @@ interface CheckInRecord {
     selfie_url: string; 
     submitted_at: Date; 
     status: number; 
-    address: string;
-    distance: number;
+    address: string | null;
+    distance: number | null;
     nearest_office_address: string | null;
     nearest_office_name: string | null;
     employee: { 
@@ -56,8 +56,8 @@ const CheckInPage = () => {
     const records = data?.records ?? [];
 
     return (
-         <Wrapper heading="Punch Management">
-            <div className="flex gap-1 border-b border-gray-200" role="tablist" aria-label="Punch status">
+         <Wrapper heading="Punch Management" scrollable>
+            <div className="flex shrink-0 gap-1 border-b border-gray-200" role="tablist" aria-label="Punch status">
                 <button
                 role="tab"
                 aria-selected={status === 1}
@@ -97,7 +97,7 @@ const CheckInPage = () => {
                     Rejected
                 </button>
             </div>
-            <div className="flex min-h-40 flex-col gap-4 py-6" aria-live="polite" aria-busy={isFetching}>
+            <div className="flex min-h-40 shrink-0 flex-col gap-4 py-6" aria-live="polite" aria-busy={isFetching}>
                 {isLoading ? (
                     <div className="flex max-w-3xl flex-col gap-3 rounded-xl border border-gray-200 bg-white p-5 shadow-sm" role="status" aria-label="Loading punch records">
                         <div className="flex items-center gap-3">
@@ -126,7 +126,7 @@ const CheckInPage = () => {
                 )}
             </div>
 
-            <div className="flex w-full flex-row justify-center gap-3 pb-16">
+            <div className="flex w-full shrink-0 flex-row justify-center gap-3 pb-4">
                 <button
                     onClick={prevPage}
                     disabled={page === 0}

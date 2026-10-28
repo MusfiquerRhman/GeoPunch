@@ -15,9 +15,17 @@ services:
       - NODE_ENV=production
       - PORT=3000
       - TZ=Asia/Dhaka
-      - ATTENDANCE_RADIUS_METERS=${ATTENDANCE_RADIUS_METERS:-100}
+      - MAP_TILE_UPSTREAM_URL=http://geopunch-maps/tile
     volumes:
       - attendance_uploads:/app/data/attendance-uploads
+    networks:
+      - default
+      - maps
 
 volumes:
   attendance_uploads:
+
+networks:
+  maps:
+    external: true
+    name: geopunch_maps

@@ -1,6 +1,8 @@
 import { handlePrismaError } from "@/app/api/_utils/handlePrismaError";
 import { db } from "@/utils/prisma";
 import { withAdminAuth } from "../../../_utils/auth";
+import { parseFormBody } from "@/app/api/_utils/formBody";
+import { designationSchema } from "@/app/(authed)/library/designations/schema";
 
 async function getDesignation(request: Request,  { params }: { params: Promise<{ id: string }> }): Promise<Response> {
     const { id } = await params;
@@ -12,7 +14,7 @@ async function getDesignation(request: Request,  { params }: { params: Promise<{
     });
 
     if (!designation) {
-        return new Response("Designation not found", { status: 404 });
+        return Response.json({ message: "Designation not found" }, { status: 404 });
     }
 
     return new Response(JSON.stringify(designation), { status: 200 });
@@ -20,11 +22,9 @@ async function getDesignation(request: Request,  { params }: { params: Promise<{
 
 async function updateDesignation(request: Request, { params }: { params: Promise<{ id: string }> }): Promise<Response> {
     const { id } = await params;
-    const { designation } = await request.json();
-
-    if (!designation || typeof designation !== "string") {
-        return new Response("Invalid input", { status: 400 });
-    }
+    const parsed = await parseFormBody(request, designationSchema);
+    if (parsed.response) return parsed.response;
+    const { designation } = parsed.data;
 
     try {
         const updatedDesignation = await db.designations.update({
@@ -39,7 +39,7 @@ async function updateDesignation(request: Request, { params }: { params: Promise
     }
     catch (error) {
         console.error("Error updating designation:", error);
-          const err = handlePrismaError(error);
+        const err = handlePrismaError(error, "Designation already exists. Please use a different name.");
 
         return new Response(
             JSON.stringify({ message: err.message }),

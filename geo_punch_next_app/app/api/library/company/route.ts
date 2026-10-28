@@ -1,6 +1,8 @@
 import { db } from "@/utils/prisma";
 import { handlePrismaError } from "../../_utils/handlePrismaError";
 import { withAdminAuth } from "../../_utils/auth";
+import { parseFormBody } from "@/app/api/_utils/formBody";
+import { companySchema } from "@/app/(authed)/library/company/schema";
 
 async function listCompanies(request: Request): Promise<Response> {
     const { searchParams } = new URL(request.url);
@@ -14,6 +16,7 @@ async function listCompanies(request: Request): Promise<Response> {
                 mode: "insensitive",
             },
         },
+        orderBy: { id: "asc" },
         skip: page * 10,
         take: 10,
     });
@@ -31,11 +34,9 @@ async function listCompanies(request: Request): Promise<Response> {
 }
 
 async function createCompany(request: Request): Promise<Response> {
-    const { name } = await request.json();
-
-    if (!name || typeof name !== "string") {
-        return new Response("Invalid input", { status: 400 });
-    }
+    const parsed = await parseFormBody(request, companySchema);
+    if (parsed.response) return parsed.response;
+    const { name } = parsed.data;
 
     try {
         const newCompany = await db.company.create({

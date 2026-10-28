@@ -1,6 +1,8 @@
 import { handlePrismaError } from "@/app/api/_utils/handlePrismaError";
 import { db } from "@/utils/prisma";
 import { withAdminAuth } from "../../../_utils/auth";
+import { parseFormBody } from "@/app/api/_utils/formBody";
+import { departmentSchema } from "@/app/(authed)/library/departments/schema";
 
 async function getDepartment(request: Request,  { params }: { params: Promise<{ id: string }> }): Promise<Response> {
     const { id } = await params;
@@ -12,7 +14,7 @@ async function getDepartment(request: Request,  { params }: { params: Promise<{ 
     });
 
     if (!department) {
-        return new Response("Department not found", { status: 404 });
+        return Response.json({ message: "Department not found" }, { status: 404 });
     }
 
     return new Response(JSON.stringify(department), { status: 200 });
@@ -22,11 +24,9 @@ async function getDepartment(request: Request,  { params }: { params: Promise<{ 
 
 async function updateDepartment(request: Request, { params }: { params: Promise<{ id: string }> }): Promise<Response> {
     const { id } = await params;
-    const { department_name } = await request.json();
-
-    if (!department_name || typeof department_name !== "string") {
-        return new Response("Invalid input", { status: 400 });
-    }
+    const parsed = await parseFormBody(request, departmentSchema);
+    if (parsed.response) return parsed.response;
+    const { department_name } = parsed.data;
 
     try {
         const updatedDepartment = await db.departments.update({

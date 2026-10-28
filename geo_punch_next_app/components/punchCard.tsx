@@ -3,6 +3,7 @@
 import { formatDateTime } from "@/utils/localDateString";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import MapPicker from "@/components/LocationSelector";
 
 type Employee = {
   id: string;
@@ -73,8 +74,8 @@ export default function PunchCard({ record }: { record: PunchRecord }) {
     }
 
   return (
-    <div className="flex flex-row max-w-5xl w-full rounded-2xl border border-gray-200 bg-white shadow-md overflow-hidden hover:shadow-xl transition">
-      <div className="relative w-1/4 shrink-0 border-r border-gray-200">
+    <div className="grid w-full max-w-5xl shrink-0 grid-cols-1 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-md transition hover:shadow-xl lg:grid-cols-[minmax(0,1fr)_minmax(0,1.75fr)_minmax(0,1.5fr)]">
+      <div className="relative h-56 border-b border-gray-200 bg-gray-50 lg:h-auto lg:min-h-64 lg:border-r lg:border-b-0">
         <img
           src={record.selfie_url}
           alt="selfie"
@@ -82,10 +83,10 @@ export default function PunchCard({ record }: { record: PunchRecord }) {
           className="absolute inset-0 h-full w-full object-contain cursor-pointer"
         />
       </div>
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0 break-words">
       {/* Header */}
-        <div className="p-4 flex items-center gap-4 border-b border-gray-300">
-          <div className="flex-1">
+        <div className="flex flex-wrap items-center gap-3 border-b border-gray-300 p-4">
+          <div className="min-w-0 flex-1">
             <h2 className="text-lg font-semibold text-gray-800">
               {record.employee.name}
             </h2>
@@ -95,7 +96,7 @@ export default function PunchCard({ record }: { record: PunchRecord }) {
           </div>
 
           <span
-            className={`px-3 py-1 text-xs rounded-full font-medium ${
+            className={`shrink-0 px-3 py-1 text-xs rounded-full font-medium ${
               record.status === 2
                 ? "bg-green-100 text-green-700"
                 : record.status === 0 ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"
@@ -109,7 +110,7 @@ export default function PunchCard({ record }: { record: PunchRecord }) {
         <div className="p-4 space-y-3 text-sm">
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wide font-mono">Client-reported address · unverified</p>
-            <p className="font-medium text-gray-800">{record?.address ?? "No address submitted"}</p>
+            <p className="font-medium text-gray-800">{record.address?.trim() || "No address submitted"}</p>
                <span className="text-xs text-gray-500 uppercase tracking-wide font-mono">
                 (LAT:{record.latitude}, LON:{record.longitude})
               </span>
@@ -145,7 +146,7 @@ export default function PunchCard({ record }: { record: PunchRecord }) {
               </span>
 
               <p className="font-mono text-sm font-medium text-gray-900">
-                {record.distance?.toFixed(2)} m
+                {record.distance == null ? "N/A" : `${record.distance.toFixed(2)} m`}
               </p>
             </div>
           </div>
@@ -167,26 +168,26 @@ export default function PunchCard({ record }: { record: PunchRecord }) {
 
           <div>
               {record.status === 1 && (
-                  <div className="text-sm text-gray-500 flex gap-2">
+                  <div className="flex flex-wrap gap-2 text-sm text-gray-500">
                       <button
                           onClick={() => approveCheckIn(record.id)}
-                          className="bg-teal-500 hover:bg-teal-600 text-white py-2 px-4 rounded-md transition"
+                          className="min-h-11 rounded-md bg-teal-500 px-4 py-2 text-white transition hover:bg-teal-600"
                       >
                           Approve
                       </button>
                       <button
                           onClick={() => rejectCheckIn(record.id)}
-                          className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-md transition"
+                          className="min-h-11 rounded-md bg-red-500 px-4 py-2 text-white transition hover:bg-red-600"
                       >
                           Reject
                       </button>
                   </div>
               )}
               {record.status === 2 && (
-                  <div className="text-sm text-gray-500 flex gap-2">
+                  <div className="flex flex-wrap gap-2 text-sm text-gray-500">
                       <button 
                           onClick={() => rejectCheckIn(record.id)}
-                          className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-md transition"
+                          className="min-h-11 rounded-md bg-red-500 px-4 py-2 text-white transition hover:bg-red-600"
                       >
                           Reject
                       </button>
@@ -195,7 +196,7 @@ export default function PunchCard({ record }: { record: PunchRecord }) {
               {record.status === 0 && (
                   <button
                       onClick={() => approveCheckIn(record.id)}
-                      className="bg-teal-500 hover:bg-teal-600 text-white py-2 px-4 rounded-md transition"
+                      className="min-h-11 rounded-md bg-teal-500 px-4 py-2 text-white transition hover:bg-teal-600"
                   >
                       Approve
                   </button>
@@ -203,20 +204,10 @@ export default function PunchCard({ record }: { record: PunchRecord }) {
           </div>
         </div>
       </div>
-      <div className="h-full flex-1">
-        <div className="w-full h-full">
-          <iframe
-              width="100%"
-              height="100%"
-              className="border-0"
-              loading="lazy"
-              src={`https://www.openstreetmap.org/export/embed.html?bbox=${
-                record.longitude - 0.01
-              }%2C${record.latitude - 0.01}%2C${record.longitude + 0.01}%2C${
-                record.latitude + 0.01
-              }&layer=mapnik&marker=${record.latitude}%2C${record.longitude}`}
-          />
-        </div>
+      <div className="h-56 min-w-0 border-t border-gray-200 lg:h-auto lg:min-h-64 lg:border-t-0 lg:border-l">
+          <div aria-label={`Punch location for ${record.employee.name}`}>
+              <MapPicker coords={{ lat: record.latitude, lng: record.longitude }} height={256} zoom={15} />
+          </div>
       </div>
 
             {/* 🔥 IMAGE MODAL */}

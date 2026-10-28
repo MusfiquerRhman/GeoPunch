@@ -7,10 +7,9 @@ Set these values in the app's `.env` file before starting or building it:
 ```dotenv
 DATABASE_URL=postgresql://USER:PASSWORD@HOST:5432/DATABASE
 JWT_SECRET=replace-with-a-random-secret-of-at-least-32-bytes
-ATTENDANCE_RADIUS_METERS=100
 ```
 
-The radius is enforced by the server when attendance is submitted. Set it to the employer's approved distance in meters. Selfies are kept outside `public/` at `data/attendance-uploads`; in Docker Compose, the `attendance_uploads` named volume persists them across container replacement. For other deployments, persist that private directory and back it up with the database.
+Employees can submit attendance from anywhere with a selfie and valid GPS coordinates. Office proximity is informational only; submissions also work when no office locations are configured. Selfies are kept outside `public/` at `data/attendance-uploads`; in Docker Compose, the `attendance_uploads` named volume persists them across container replacement. For other deployments, persist that private directory and back it up with the database.
 
 Admin browser sessions use an HttpOnly cookie. Employee API sessions use the bearer token returned by the mobile login endpoint. Passwords created by the app are bcrypt hashes. On the first successful admin login after upgrading, the app converts existing plaintext employee passwords to hashes and clears their plaintext values; an employee logging in first gets the same conversion for their account.
 

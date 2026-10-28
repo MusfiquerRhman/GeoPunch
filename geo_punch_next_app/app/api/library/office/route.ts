@@ -1,6 +1,9 @@
 import { db } from "@/utils/prisma";
 import { handlePrismaError } from "../../_utils/handlePrismaError";
 import { withAdminAuth } from "../../_utils/auth";
+import { parseFormBody } from "../../_utils/formBody";
+import { officeSchema } from "@/app/(authed)/library/offices/schema";
+import { saveOffice, OfficeFormError } from "./_utils";
 
 async function listOffices(request: Request): Promise<Response> {
     const { searchParams } = new URL(request.url);
@@ -8,6 +11,7 @@ async function listOffices(request: Request): Promise<Response> {
     const search = searchParams.get("search") || "";
 
     const offices = await db.offices.findMany({
+        orderBy: { id: "asc" },
         skip: page * 10,
         take: 10,
 
@@ -90,45 +94,14 @@ async function listOffices(request: Request): Promise<Response> {
 }
 
 async function createOffice(req: Request): Promise<Response> {
-    const { name, company_id, locations } = await req.json();
-
-    if (!name || typeof name !== "string") {
-        return new Response("Invalid input", { status: 400 });
-    }
+    const parsed = await parseFormBody(req, officeSchema);
+    if (parsed.response) return parsed.response;
 
     try {
-        return await db.$transaction(async (tx) => {
-            const newOffice = await tx.offices.create({
-                data: {
-                    name: name,
-                    company_id: company_id
-                },
-            });
-
-            const locationData = locations.map((loc: any) => ({
-                address: loc.address,
-                latitude: loc.lat,
-                longitude: loc.lng,
-                office_id: newOffice.id,
-            }));
-
-            await tx.office_locations.createMany({
-                data: locationData
-            });
-
-            return Response.json({newOffice, locationData}, { status: 201 });
-        })
-        
+        return Response.json(await saveOffice(parsed.data), { status: 201 });
     } catch (error) {
-        console.error("Error creating office:", error);
-        console.error("Error details:", error instanceof Error ? error.message : error);
-        
-        const err = handlePrismaError(error);
-
-        return new Response(
-            JSON.stringify({ message: err.message }),
-            { status: 400 }
-        );
+        const err = error instanceof OfficeFormError ? error : handlePrismaError(error);
+        return Response.json({ message: err.message }, { status: 400 });
     }
 }
 

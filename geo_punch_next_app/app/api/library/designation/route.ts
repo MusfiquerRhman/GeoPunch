@@ -1,6 +1,8 @@
 import { db } from "@/utils/prisma";
 import { handlePrismaError } from "../../_utils/handlePrismaError";
 import { withAdminAuth } from "../../_utils/auth";
+import { parseFormBody } from "@/app/api/_utils/formBody";
+import { designationSchema } from "@/app/(authed)/library/designations/schema";
 
 async function listDesignations(request: Request): Promise<Response> {
     const { searchParams } = new URL(request.url);
@@ -8,6 +10,7 @@ async function listDesignations(request: Request): Promise<Response> {
     const search = searchParams.get("search") || "";
 
     const designations = await db.designations.findMany({
+        orderBy: { id: "asc" },
         skip: page * 10,
         take: 10,
         where: {
@@ -31,11 +34,9 @@ async function listDesignations(request: Request): Promise<Response> {
 }
 
 async function createDesignation(req: Request): Promise<Response> {
-    const { designation } = await req.json();
-
-    if (!designation || typeof designation !== "string") {
-        return new Response("Invalid input", { status: 400 });
-    }
+    const parsed = await parseFormBody(req, designationSchema);
+    if (parsed.response) return parsed.response;
+    const { designation } = parsed.data;
 
     try {
         const newDesignation = await db.designations.create({
@@ -46,7 +47,7 @@ async function createDesignation(req: Request): Promise<Response> {
         return Response.json(newDesignation, { status: 201 });
     } catch (error) {
         console.error("Error creating designation:", error);
-        const err = handlePrismaError(error);
+        const err = handlePrismaError(error, "Designation already exists. Please use a different name.");
 
         return new Response(
             JSON.stringify({ message: err.message }),

@@ -8,6 +8,12 @@ const publicPaths = new Set([
   "/api/auth/logout",
 ]);
 
+const publicMapAssets = new Set([
+  "/maps/leaflet/leaflet.js", "/maps/leaflet/leaflet.css", "/maps/leaflet/LICENSE.txt",
+  "/maps/leaflet/images/marker-icon.png", "/maps/leaflet/images/marker-icon-2x.png",
+  "/maps/leaflet/images/marker-shadow.png", "/maps/leaflet/images/layers.png", "/maps/leaflet/images/layers-2x.png",
+]);
+
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
@@ -20,7 +26,9 @@ export async function proxy(req: NextRequest) {
   if (
     pathname.startsWith("/_next/") ||
     pathname === "/favicon.ico" ||
-    publicPaths.has(pathname)
+    publicPaths.has(pathname) ||
+    publicMapAssets.has(pathname) ||
+    /^\/api\/maps\/tiles\/\d{1,2}\/\d{1,6}\/\d{1,6}\.png$/.test(pathname)
   ) {
     return NextResponse.next();
   }

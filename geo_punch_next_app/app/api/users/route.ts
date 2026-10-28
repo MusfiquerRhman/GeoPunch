@@ -2,6 +2,8 @@ import { db } from "@/utils/prisma";
 import bcrypt from "bcryptjs";
 import { handlePrismaError } from "../_utils/handlePrismaError";
 import { withAdminAuth } from "../_utils/auth";
+import { userSchema } from "@/app/(authed)/admin/users/schema";
+import { parseFormBody } from "../_utils/formBody";
 
 async function listUsers(request: Request): Promise<Response> {
   const { searchParams } = new URL(request.url);
@@ -77,20 +79,9 @@ async function listUsers(request: Request): Promise<Response> {
 }
 
 async function createUser(request: Request): Promise<Response> {
-  let data: any;
-  try {
-    data = await request.json();
-  } catch {
-    return Response.json({ message: "Invalid request body" }, { status: 400 });
-  }
-  if (
-    typeof data.name !== "string" || !data.name.trim() ||
-    typeof data.id_card_no !== "string" || !data.id_card_no.trim() ||
-    typeof data.password !== "string" || data.password.length < 8 ||
-    typeof data.isActive !== "boolean" || typeof data.isAdmin !== "boolean"
-  ) {
-    return Response.json({ message: "Invalid employee details or password (minimum 8 characters)" }, { status: 400 });
-  }
+  const parsed = await parseFormBody(request, userSchema);
+  if (parsed.response) return parsed.response;
+  const data = parsed.data;
 
   try {
     const res = await db.employees.create({

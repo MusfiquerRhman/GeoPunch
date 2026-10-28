@@ -8,7 +8,6 @@ import { protectedSelfieUrl } from "../../_utils/attendanceFiles";
 import { haversineDistance } from "../../_utils/haversine_algorithm";
 
 const MAX_SELFIE_BYTES = 5 * 1024 * 1024;
-const ALLOWED_RADIUS_METERS = Number(process.env.ATTENDANCE_RADIUS_METERS ?? 100);
 
 function detectImageType(bytes: Buffer) {
   if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return "image/jpeg";
@@ -43,6 +42,8 @@ export async function POST(req: Request) {
   const file = formData.get("photo");
   const latitudeValue = formData.get("latitude");
   const longitudeValue = formData.get("longitude");
+  const addressValue = formData.get("address");
+  const address = typeof addressValue === "string" ? addressValue.trim() || null : null;
   const latitude = typeof latitudeValue === "string" && latitudeValue.trim() !== "" ? Number(latitudeValue) : NaN;
   const longitude = typeof longitudeValue === "string" && longitudeValue.trim() !== "" ? Number(longitudeValue) : NaN;
   if (
@@ -62,11 +63,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Selfie must be a valid JPEG, PNG, or WebP image" }, { status: 415 });
   }
 
-  if (!Number.isFinite(ALLOWED_RADIUS_METERS) || ALLOWED_RADIUS_METERS <= 0) {
-    console.error("ATTENDANCE_RADIUS_METERS must be a positive number");
-    return NextResponse.json({ error: "Attendance location policy is not configured" }, { status: 500 });
-  }
-
   const offices = await db.offices.findMany({
     where: { company_id: user.company_id },
     select: {
@@ -78,10 +74,6 @@ export async function POST(req: Request) {
     ...location,
     office_name: office.name,
   })));
-  if (locations.length === 0) {
-    return NextResponse.json({ error: "No office locations are configured for this company" }, { status: 409 });
-  }
-
   const nearest = locations
     .map((office) => ({
       ...office,
@@ -91,14 +83,6 @@ export async function POST(req: Request) {
       ),
     }))
     .sort((a, b) => a.distance - b.distance)[0];
-
-  if (nearest.distance > ALLOWED_RADIUS_METERS) {
-    return NextResponse.json({
-      error: "You are outside the permitted attendance area",
-      distance: Math.round(nearest.distance),
-      allowed_radius_meters: ALLOWED_RADIUS_METERS,
-    }, { status: 403 });
-  }
 
   const uploadDir = path.join(/*turbopackIgnore: true*/ process.cwd(), "data", "attendance-uploads");
   const fileName = `${randomUUID()}.${extensionForType[contentType]}`;
@@ -113,11 +97,11 @@ export async function POST(req: Request) {
         latitude,
         longitude,
         // The address comes from client-side reverse geocoding and is not proof
-        // of location. Keep the server-verified coordinates and distance only.
-        address: null,
+        // of location. Store it for display alongside the coordinates and distance.
+        address,
         selfie_url: `/api/geo_punch/uploads/${fileName}`,
-        nearest_office_location: nearest.id,
-        distance: nearest.distance,
+        nearest_office_location: nearest?.id ?? null,
+        distance: nearest?.distance ?? null,
       },
     });
   } catch (error) {
@@ -144,6 +128,7 @@ export async function GET(req: Request) {
         selfie_url: true,
         submitted_at: true,
         status: true,
+        address: true,
       },
       take: 20,
     });
