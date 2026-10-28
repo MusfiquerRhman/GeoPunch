@@ -10,6 +10,7 @@ type AttendanceRecord = {
   longitude: number;
   submitted_at: string;
   status: number;
+  address?: string | null;
 };
 
 type Props = {
@@ -39,20 +40,23 @@ function statusLabel(status: number) {
 }
 
 export default function AttendanceCard({ item, baseUrl, token }: Props) {
-  const [address, setAddress] = useState("Loading location...");
+  const [resolvedAddress, setResolvedAddress] = useState("Loading location...");
+  const address = item.address?.trim() || resolvedAddress;
   const status = statusLabel(item.status);
   const submittedAt = new Date(item.submitted_at);
 
   useEffect(() => {
+    if (item.address?.trim()) return;
+
     let active = true;
     void getAddress(item.latitude, item.longitude).then((value) => {
-      if (active) setAddress(value);
+      if (active) setResolvedAddress(value);
     });
 
     return () => {
       active = false;
     };
-  }, [item.latitude, item.longitude]);
+  }, [item.address, item.latitude, item.longitude]);
 
   return (
     <View style={styles.card}>

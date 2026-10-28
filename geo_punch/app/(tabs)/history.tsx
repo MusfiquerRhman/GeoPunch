@@ -18,6 +18,7 @@ interface AttendanceRecord {
   longitude: number;
   submitted_at: string;
   status: number;
+  address?: string | null;
 }
 
 export default function HistoryScreen() {

@@ -35,7 +35,7 @@ function formatAddress(addresses: Location.LocationGeocodedAddress[]) {
 
   return [address.name, address.street, address.city, address.country]
     .filter(Boolean)
-    .join(", ");
+    .join(", ") || "Address unavailable";
 }
 
 export default function HomeScreen() {
@@ -73,6 +73,7 @@ export default function HomeScreen() {
     setLocationLoading(true);
     setLocationError(null);
     setLocation(null);
+    setAddress("Finding address...");
 
     try {
       let permission = await Location.getForegroundPermissionsAsync();
@@ -88,10 +89,15 @@ export default function HomeScreen() {
         accuracy: Location.Accuracy.High,
       });
       setLocation(currentLocation);
-      return currentLocation;
+      const currentAddress = await Location.reverseGeocodeAsync(currentLocation.coords)
+        .then(formatAddress)
+        .catch(() => "Address unavailable");
+      setAddress(currentAddress);
+      return { location: currentLocation, address: currentAddress };
     } catch (error) {
       const message = error instanceof Error ? error.message : "Could not read your location. Check GPS and try again.";
       setLocationError(message);
+      setAddress("Address unavailable");
       return null;
     } finally {
       setLocationLoading(false);
@@ -106,7 +112,6 @@ export default function HomeScreen() {
     let isCurrent = true;
 
     if (!location) {
-      setAddress("Finding address...");
       setNearestOffice(null);
       setIsFindingOffice(false);
       return () => {
@@ -115,15 +120,6 @@ export default function HomeScreen() {
     }
 
     const { latitude, longitude } = location.coords;
-    setAddress("Finding address...");
-    void Location.reverseGeocodeAsync({ latitude, longitude })
-      .then((result) => {
-        if (isCurrent) setAddress(formatAddress(result));
-      })
-      .catch(() => {
-        if (isCurrent) setAddress("Address unavailable");
-      });
-
     if (token) {
       setNearestOffice(null);
       setNearestOfficeError(null);
@@ -199,10 +195,11 @@ export default function HomeScreen() {
     submissionLock.current = true;
     setIsSubmitting(true);
     try {
-      const currentLocation = await refreshLocation();
-      if (!currentLocation) {
+      const currentPosition = await refreshLocation();
+      if (!currentPosition) {
         throw new Error("Location is unavailable. Turn on GPS and try again.");
       }
+      const { location: currentLocation, address: currentAddress } = currentPosition;
 
       const formData = new FormData();
       const photoFile = new File(photoUri);
@@ -215,6 +212,9 @@ export default function HomeScreen() {
       formData.append("photo", photoFile, "attendance-selfie.jpg");
       formData.append("latitude", String(currentLocation.coords.latitude));
       formData.append("longitude", String(currentLocation.coords.longitude));
+      if (currentAddress !== "Address unavailable") {
+        formData.append("address", currentAddress);
+      }
 
       await apiRequest<{ success: true }>("/geo_punch/record", {
         method: "POST",

@@ -1,6 +1,6 @@
 # GeoPunch Android app
 
-GeoPunch lets employees sign in, take an attendance selfie, submit their current coordinates, and view their attendance history and profile. The Next.js app validates the attendance radius and stores the selfie.
+GeoPunch lets employees sign in, take an attendance selfie, submit their current coordinates, and view their attendance history and profile. The Next.js app accepts attendance from any location and stores the selfie and coordinates.
 
 ## Configure the app
 
