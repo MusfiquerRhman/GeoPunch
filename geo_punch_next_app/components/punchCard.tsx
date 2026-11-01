@@ -44,6 +44,7 @@ export default function PunchCard({ record }: { record: PunchRecord }) {
                 throw new Error(errorData.error || "Failed to approve check-in");
             } else {
                 queryClient.invalidateQueries({ queryKey: ["checkins"] });
+                queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
             }
         } catch (error) {
             console.error("Error approving check-in:", error);
@@ -66,6 +67,7 @@ export default function PunchCard({ record }: { record: PunchRecord }) {
             }
             else {
                 queryClient.invalidateQueries({ queryKey: ["checkins"] });
+                queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
             }
         } catch (error) {
             console.error("Error rejecting check-in:", error);

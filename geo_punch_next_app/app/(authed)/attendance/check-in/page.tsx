@@ -2,8 +2,10 @@
 
 import { Wrapper } from "@/components";
 import PunchCard from "@/components/punchCard";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 interface CheckInRecord { 
     id: string; 
@@ -25,9 +27,16 @@ interface CheckInRecord {
 
 type TabType = 0 | 1 | 2;
 
-const CheckInPage = () => {
+const CheckInPage = ({ params }: { params: URLSearchParams }) => {
     const [page, setpage] = useState(0);
-    const [status, setStatus] = useState<TabType>(1);
+    const initialStatus = Number(params.get("status") ?? 1);
+    const [status, setStatus] = useState<TabType>([0, 1, 2].includes(initialStatus) ? initialStatus as TabType : 1);
+    const filters = new URLSearchParams();
+    for (const key of ["date", "company", "office", "record"]) {
+        const value = params.get(key);
+        if (value) filters.set(key, value);
+    }
+    const filterKey = filters.toString();
 
     const handleTabChange = (tab: TabType) => {
         setStatus(tab);
@@ -43,13 +52,16 @@ const CheckInPage = () => {
     }
 
     async function fetchCheckins() {
-        const res = await fetch(`/api/admin/checkin?page=${page}&status=${status}`);
+        const query = new URLSearchParams(filters);
+        query.set("page", String(page));
+        query.set("status", String(status));
+        const res = await fetch(`/api/admin/checkin?${query}`);
         if (!res.ok) throw new Error("Failed to fetch checkins");
         return res.json();
     }
 
     const { data, isLoading, isFetching, error } = useQuery({
-        queryKey: ["checkins", page, status],
+        queryKey: ["checkins", page, status, filterKey],
         queryFn: fetchCheckins,
     });
 
@@ -57,6 +69,10 @@ const CheckInPage = () => {
 
     return (
          <Wrapper heading="Punch Management" scrollable>
+            {filterKey && <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-teal-100 bg-teal-50 px-4 py-3 text-sm text-teal-900">
+                <span>Dashboard selection{params.get("date") ? ` · ${params.get("date")} (Dhaka)` : ""}{params.get("record") ? " · Selected punch" : ""}</span>
+                <Link href={`/attendance/check-in?status=${status}`} className="font-medium underline">Clear selection</Link>
+            </div>}
             <div className="flex shrink-0 gap-1 border-b border-gray-200" role="tablist" aria-label="Punch status">
                 <button
                 role="tab"
@@ -146,4 +162,11 @@ const CheckInPage = () => {
     )
 }
 
-export default CheckInPage;
+function SelectedCheckIns() {
+    const searchParams = useSearchParams();
+    return <CheckInPage key={searchParams.toString()} params={new URLSearchParams(searchParams.toString())} />;
+}
+
+export default function CheckIns() {
+    return <Suspense fallback={<Wrapper heading="Punch Management"><p role="status">Loading punches…</p></Wrapper>}><SelectedCheckIns /></Suspense>;
+}

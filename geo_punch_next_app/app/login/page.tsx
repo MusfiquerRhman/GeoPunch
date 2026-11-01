@@ -29,13 +29,13 @@ const Login = () => {
         fetch("/api/auth/session")
             .then(async (res) => res.ok ? res.json() : null)
             .then((session) => {
-                if (session?.authenticated && session.isAdmin) router.replace("/attendance/check-in");
+                if (session?.authenticated && session.isAdmin) router.replace("/dashboard");
             })
             .catch(() => undefined)
             .finally(() => setIsCheckingSession(false));
     }, [router]);
 
-    const onSubmit = async (data: any) => {
+    const onSubmit = async (data: { id_card_no: string; password: string }) => {
         setIsSubmitting(true);
         seterror("");
         try {
@@ -61,7 +61,7 @@ const Login = () => {
                 return;
             }
 
-            await router.replace("/attendance/check-in");
+            await router.replace("/dashboard");
             router.refresh();
         } catch (err) {
             console.error("Login request failed:", err);
