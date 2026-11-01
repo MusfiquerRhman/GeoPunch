@@ -23,11 +23,14 @@ export default function Login() {
         setIsSubmitting(true);
         setErrorMessage(null);
         try {
-          const result = await apiRequest<{ token: string }>("/auth/geo_punch/login", {
+          const result = await apiRequest<{ token?: unknown }>("/auth/geo_punch/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ id_card_no: idCard.trim(), password }),
           });
+          if (typeof result?.token !== "string" || !result.token.trim()) {
+            throw new Error("The server did not return a sign-in token. Please try again.");
+          }
           await login(result.token);
         } catch (error) {
           setErrorMessage(error instanceof Error ? error.message : "Could not sign in. Please try again.");

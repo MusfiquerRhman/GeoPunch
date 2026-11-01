@@ -30,8 +30,9 @@ export async function apiRequest<T>(
         method: requestOptions.method,
         body: requestOptions.body,
         headers,
+        credentials: "omit",
       })
-    : await fetch(getApiUrl(path), { ...requestOptions, headers });
+    : await fetch(getApiUrl(path), { ...requestOptions, headers, credentials: "omit" });
 
   let body: unknown;
   try {
@@ -40,7 +41,7 @@ export async function apiRequest<T>(
     body = null;
   }
 
-  if (response.status === 401) {
+  if (response.status === 401 && token) {
     await onUnauthorized?.();
     throw new ApiError("Your session has expired. Please sign in again.", 401);
   }
@@ -53,6 +54,10 @@ export async function apiRequest<T>(
           ? body.message
           : `Request failed (${response.status})`;
     throw new ApiError(message, response.status);
+  }
+
+  if (body === null) {
+    throw new ApiError("The server returned an invalid response. Please try again.", response.status);
   }
 
   return body as T;

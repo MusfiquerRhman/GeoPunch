@@ -1,11 +1,8 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import * as SecureStore from "expo-secure-store";
-import { jwtDecode } from "jwt-decode";
 import { useQueryClient } from "@tanstack/react-query";
-
-interface JwtPayload {
-  exp?: number;
-}
+import { AppState } from "react-native";
+import { createAuthSession, getTokenExpiry, type AuthSessionState } from "./authSession";
 
 interface AuthContextType {
   token: string | null;
@@ -18,72 +15,45 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
-  const [token, setToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [session, setSession] = useState<AuthSessionState>({ token: null, loading: true, revision: 0 });
+  const [auth] = useState(() => createAuthSession({
+    storage: {
+      getToken: () => SecureStore.getItemAsync("token"),
+      setToken: (token) => SecureStore.setItemAsync("token", token),
+      deleteToken: () => SecureStore.deleteItemAsync("token"),
+    },
+    onChange: setSession,
+    clearCache: () => queryClient.clear(),
+  }));
+  const { token, loading, revision } = session;
 
   // Load token on app start
   useEffect(() => {
-    const load = async () => {
-      try {
-        setToken(await SecureStore.getItemAsync("token"));
-      } catch {
-        setToken(null);
-      } finally {
-        setLoading(false);
-      }
-    };
+    void auth.restore();
+  }, [auth]);
 
-    load();
-  }, []);
-
-  const login = useCallback(async (t: string) => {
-    if (!t) throw new Error("The server did not return a sign-in token.");
-    await queryClient.clear();
-    await SecureStore.setItemAsync("token", t);
-    setToken(t);
-  }, [queryClient]);
-
-  const logout = useCallback(async () => {
-    try {
-      await SecureStore.deleteItemAsync("token");
-    } catch {
-      // Clear the in-memory session even if the platform secure store is unavailable.
-    } finally {
-      setToken(null);
-      await queryClient.clear();
-    }
-  }, [queryClient]);
+  const login = auth.login;
+  const logout = useCallback(() => auth.logout(revision), [auth, revision]);
 
   // Auto logout on expiry
   useEffect(() => {
     if (!token) return;
 
-    let timer: ReturnType<typeof setTimeout>;
-
-    try {
-      const decoded = jwtDecode<JwtPayload>(token);
-      if (!Number.isFinite(decoded.exp)) {
-        void logout();
-        return;
-      }
-
-      const expiryTime = decoded.exp! * 1000;
-      const timeout = expiryTime - Date.now();
-
-      if (timeout <= 0) {
-        void logout();
-        return;
-      }
-
-      timer = setTimeout(() => {
-        void logout();
-      }, timeout);
-    } catch {
+    const expiryTime = getTokenExpiry(token) ?? 0;
+    const timeout = expiryTime - Date.now();
+    if (timeout <= 0) {
       void logout();
+      return;
     }
 
+    const timer = setTimeout(() => void logout(), timeout);
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state === "active" && expiryTime <= Date.now()) void logout();
+    });
+
     return () => {
-      if (timer) clearTimeout(timer);
+      clearTimeout(timer);
+      subscription.remove();
     };
   }, [logout, token]);
 

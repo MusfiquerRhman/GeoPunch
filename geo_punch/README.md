@@ -2,6 +2,10 @@
 
 GeoPunch lets employees sign in, take an attendance selfie, submit their current coordinates, and view their attendance history and profile. The Next.js app accepts attendance from any location and stores the selfie and coordinates.
 
+Sessions last seven days from sign-in and survive closing the app. Expired or invalid saved sessions are cleared at startup, and expiry is checked again when the app returns to the foreground. Employees can sign in again after expiry; late requests from their previous session cannot clear the new login. Login errors show the server's credential error instead of a session-expired message.
+
+Session fixes require an updated Android build. Deploy the matching Next.js backend so new sign-ins receive a token valid for the full seven days; existing tokens keep their original expiry.
+
 ## Configure the app
 
 Copy `.env.example` to `.env` and set `EXPO_PUBLIC_API_URL` to the origin of the Next.js server (without `/api`). For an Android emulator, `http://10.0.2.2:3000` reaches a Next.js server running on the development computer. A physical Android device needs the computer's reachable LAN address or a deployed HTTPS URL.

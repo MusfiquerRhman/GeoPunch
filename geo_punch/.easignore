@@ -1,13 +1,13 @@
 # Include only files needed to build the mobile app.
 /*
-!/app/
-!/assets/
-!/components/
-!/constants/
-!/context/
-!/hooks/
-!/scripts/
-!/styles/
+!/app
+!/assets
+!/components
+!/constants
+!/context
+!/hooks
+!/scripts
+!/styles
 !/app.config.ts
 !/app.json
 !/eas.json
