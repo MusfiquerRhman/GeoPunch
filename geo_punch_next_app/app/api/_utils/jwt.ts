@@ -1,4 +1,5 @@
 import { SignJWT, jwtVerify, type JWTPayload } from "jose";
+import { SESSION_DURATION_SECONDS } from "./session";
 
 function getSecret() {
   const value = process.env.JWT_SECRET;
@@ -15,10 +16,11 @@ export type AppTokenPayload = JWTPayload & {
 };
 
 export async function signToken(payload: AppTokenPayload) {
+  const issuedAt = Math.floor(Date.now() / 1000);
   return new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
-    .setExpirationTime("7d")
-    .setIssuedAt()
+    .setIssuedAt(issuedAt)
+    .setExpirationTime(issuedAt + SESSION_DURATION_SECONDS)
     .sign(getSecret());
 }
 

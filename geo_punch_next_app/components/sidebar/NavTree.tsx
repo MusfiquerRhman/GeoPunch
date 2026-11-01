@@ -69,7 +69,13 @@ const NavTree = () => {
                     label: 'History',
                     icon: logIcon,
                     link: '/attendance/logs',
-                }
+                },
+                {
+                    id: 'DailyReport',
+                    label: 'Daily Report',
+                    icon: logIcon,
+                    link: '/attendance/report',
+                },
             ]
         },
         {

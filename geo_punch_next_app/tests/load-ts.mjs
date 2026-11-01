@@ -12,7 +12,7 @@ export function loadTs(relativePath, mocks = {}, cache = new Map()) {
     if (!path.extname(filename)) filename += ".ts";
     if (cache.has(filename)) return cache.get(filename).exports;
     const { outputText } = ts.transpileModule(readFileSync(filename, "utf8"), {
-        compilerOptions: { module: ts.ModuleKind.CommonJS, esModuleInterop: true }, fileName: filename,
+        compilerOptions: { target: ts.ScriptTarget.ES2017, module: ts.ModuleKind.CommonJS, esModuleInterop: true }, fileName: filename,
     });
     const loaded = { exports: {} };
     cache.set(filename, loaded);

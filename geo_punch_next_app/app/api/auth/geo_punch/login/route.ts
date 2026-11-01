@@ -1,6 +1,7 @@
 import { isAuthCookieSecure } from "../../../_utils/cookies";
 import { db } from "@/utils/prisma";
 import { signToken } from "../../../_utils/jwt";
+import { SESSION_DURATION_SECONDS } from "../../../_utils/session";
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 
@@ -95,7 +96,7 @@ export async function POST(req: Request) {
     httpOnly: true,
     secure: isAuthCookieSecure(),
     path: "/",
-    maxAge: 60 * 60 * 24 * 7,
+    maxAge: SESSION_DURATION_SECONDS,
     sameSite: "lax",
   });
 

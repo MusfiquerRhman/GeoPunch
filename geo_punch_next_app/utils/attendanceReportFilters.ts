@@ -38,3 +38,14 @@ export function attendanceReportFilters(params: URLSearchParams): Prisma.attenda
   }
   return where;
 }
+
+export function dailyAttendanceReportFilters(params: URLSearchParams): Prisma.attendance_recordWhereInput {
+  const from = params.get("from")?.trim();
+  const to = params.get("to")?.trim();
+  if (!from || !to) throw new Error("Select both From date and To date.");
+
+  return {
+    ...attendanceReportFilters(new URLSearchParams({ from, to })),
+    employee_id: { not: null },
+  };
+}

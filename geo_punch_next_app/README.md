@@ -13,6 +13,8 @@ Employees can submit attendance from anywhere with a selfie and valid GPS coordi
 
 Admin browser sessions use an HttpOnly cookie. Employee API sessions use the bearer token returned by the mobile login endpoint. Passwords created by the app are bcrypt hashes. On the first successful admin login after upgrading, the app converts existing plaintext employee passwords to hashes and clears their plaintext values; an employee logging in first gets the same conversion for their account.
 
+Both session tokens and login cookies last exactly seven days from sign-in, using `SESSION_DURATION_SECONDS` in `app/api/_utils/session.ts`. Expired credentials do not block either login endpoint. Existing tokens retain their original expiry until the user signs in again. Run `npm run test:admin` to check session expiry, re-login, and the other API regressions (both project dependency directories must be installed).
+
 `../SQL/CREATE TABLES.sql` documents the matching schema for a new PostgreSQL database. For existing installations, use Prisma migrations or a reviewed database migration rather than rerunning the create script.
 
 The repository-root database Compose file now requires `POSTGRES_PASSWORD` from a root `.env` file. Do not commit that file. The app's `.env` and the database's `.env` are separate because the two Compose projects are run independently.

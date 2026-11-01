@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test:users": "node --test tests/user-update.test.mjs",
+    "test:attendance": "node --test tests/daily-attendance-report.test.mjs",
     "test:admin": "node --test tests/*.test.mjs"
   },
   "dependencies": {
