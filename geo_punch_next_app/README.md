@@ -19,6 +19,21 @@ The administrator dashboard shows attendance for a selected Dhaka date, company,
 
 `../SQL/CREATE TABLES.sql` documents the matching schema for a new PostgreSQL database. For existing installations, use Prisma migrations or a reviewed database migration rather than rerunning the create script.
 
+Before upgrading an existing installation to the version with punch notes, apply `../SQL/ADD ATTENDANCE NOTES.sql` to its PostgreSQL database. `npm run build` regenerates the Prisma client. Run `npx prisma generate` before starting an updated local dev server.
+
+## Mobile API compatibility
+
+Most employees continue using older installed Android versions. Keep their existing API paths, methods, required inputs, response envelopes, and field names compatible when updating the server. Do not require an app version header or a forced app update for these endpoints:
+
+- `POST /api/auth/geo_punch/login`: ID card number/password input and top-level `token` / `user` response.
+- `GET /api/geo_punch/record`: `{ success, data }` with the latest 20 punches and numeric statuses. No new pagination parameters are required.
+- `POST /api/geo_punch/record`: multipart `photo`, `latitude`, and `longitude`, with optional `address` and `notes` fields. Notes allow up to 2,000 characters.
+- `POST /api/geo_punch/record/with-notes`: same multipart fields with a required nonblank `notes` value. Current apps use this path for punches with notes so an older server can't silently save the punch without its note. Update the server before releasing this app version.
+- `GET /api/geo_punch/users`, `GET /api/geo_punch/get_offices`, and `POST /api/geo_punch/get_distance`: preserve the fields used by existing profile and attendance screens.
+- `GET /api/geo_punch/uploads/[filename]`: retain authenticated access to both existing legacy selfies and newer private selfies.
+
+The calendar uses the additional `/api/geo_punch/history` endpoint; it does not replace `/record`. Preserve the existing JWT signing secret across deployments so valid saved bearer tokens continue working until their original expiry, and preserve both photo storage volumes. Run `node --test tests/mobile-api-compatibility.test.mjs tests/session.test.mjs tests/employee-history.test.mjs` before deploying mobile API changes. These tests exercise older requests through the authentication proxy, old/new history side by side, submissions without an address, and protected photo downloads using isolated fixtures without writing real attendance records or photos.
+
 The repository-root database Compose file now requires `POSTGRES_PASSWORD` from a root `.env` file. Do not commit that file. The app's `.env` and the database's `.env` are separate because the two Compose projects are run independently.
 
 ## Docker deployment and browser login

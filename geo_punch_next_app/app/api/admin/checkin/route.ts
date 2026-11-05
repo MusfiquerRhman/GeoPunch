@@ -33,6 +33,7 @@ async function listCheckIns(request: Request): Promise<Response> {
                 submitted_at: true,
                 status: true,
                 address: true,
+                notes: true,
                 distance: true,
                 office_locations: {
                     select: {
@@ -68,6 +69,7 @@ async function listCheckIns(request: Request): Promise<Response> {
             submitted_at: record.submitted_at,
             status: record.status,
             address: record.address,
+            notes: record.notes,
             distance: record.distance,
             nearest_office_address: record.office_locations?.address ?? null,
             nearest_office_name: record.office_locations?.offices?.name ?? null,

@@ -16,6 +16,7 @@ model attendance_record {
   submitted_at            DateTime?         @default(now()) @db.Timestamp(6)
   status                  Int?              @default(1)
   address                 String?
+  notes                   String?
   nearest_office_location String?           @db.Uuid
   distance                Float?
   employees               employees?        @relation(fields: [employee_id], references: [id], onDelete: Restrict, onUpdate: NoAction)

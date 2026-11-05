@@ -19,8 +19,8 @@ async function readReport(buffer) {
     await workbook.xlsx.load(buffer);
     assert.equal(workbook.worksheets.length, 1);
     const sheet = workbook.worksheets[0];
-    assert.equal(sheet.columnCount, 3);
-    assert.deepEqual(sheet.getRow(1).values.slice(1), ["User ID", "Punch Time", "Punch Status"]);
+    assert.equal(sheet.columnCount, 4);
+    assert.deepEqual(sheet.getRow(1).values.slice(1), ["User ID", "Punch Date", "Punch Time", "Punch Status"]);
     return sheet;
 }
 
@@ -38,25 +38,28 @@ test("Excel puts each user's first and last punch on separate rows by Dhaka day,
 
     assert.equal(sheet.rowCount, 7);
     assert.deepEqual(sheet.getRow(2).values.slice(1), [
-        "00123", new Date("2026-10-29T00:00:00Z"), "REJECTED",
+        "00123", new Date("2026-10-29T00:00:00Z"), new Date("1899-12-30T00:00:00Z"), "REJECTED",
     ]);
     assert.deepEqual(sheet.getRow(3).values.slice(1), [
-        "00123", new Date("2026-10-29T23:59:59Z"), "PENDING",
+        "00123", new Date("2026-10-29T00:00:00Z"), new Date("1899-12-30T23:59:59Z"), "PENDING",
     ]);
     assert.deepEqual(sheet.getRow(4).values.slice(1), [
-        "EMP-2", new Date("2026-10-29T07:00:00Z"), "ACCEPTED",
+        "EMP-2", new Date("2026-10-29T00:00:00Z"), new Date("1899-12-30T07:00:00Z"), "ACCEPTED",
     ]);
     assert.deepEqual(sheet.getRow(5).values.slice(1), [
-        "EMP-2", new Date("2026-10-29T14:00:00Z"), "REJECTED",
+        "EMP-2", new Date("2026-10-29T00:00:00Z"), new Date("1899-12-30T14:00:00Z"), "REJECTED",
     ]);
     for (const row of [6, 7]) assert.deepEqual(sheet.getRow(row).values.slice(1), [
-        "00123", new Date("2026-10-30T00:00:00Z"), "PENDING",
+        "00123", new Date("2026-10-30T00:00:00Z"), new Date("1899-12-30T00:00:00Z"), "PENDING",
     ]);
     assert.equal(sheet.getCell("A2").type, ExcelJS.ValueType.String);
     assert.equal(sheet.getCell("B2").type, ExcelJS.ValueType.Date);
-    assert.equal(sheet.getCell("B2").numFmt, '[$-en-US]dd mmm yyyy"   "h:mm:ss AM/PM');
+    assert.equal(sheet.getCell("C2").type, ExcelJS.ValueType.Date);
+    assert.equal(sheet.getCell("B2").numFmt, "[$-en-US]dd mmm yyyy");
     assert.equal(sheet.getCell("B3").numFmt, sheet.getCell("B2").numFmt);
-    assert.equal(sheet.autoFilter, "A1:C7");
+    assert.equal(sheet.getCell("C2").numFmt, "[$-en-US]h:mm:ss AM/PM");
+    assert.equal(sheet.getCell("C3").numFmt, sheet.getCell("C2").numFmt);
+    assert.equal(sheet.autoFilter, "A1:D7");
 });
 
 test("a single punch fills both first and last rows, and users without ID card numbers remain identifiable", async () => {
@@ -67,7 +70,7 @@ test("a single punch fills both first and last rows, and users without ID card n
     ]));
     assert.equal(sheet.rowCount, 3);
     for (const row of [2, 3]) assert.deepEqual(sheet.getRow(row).values.slice(1), [
-        "user-without-card", new Date("2026-10-29T09:00:00Z"), "PENDING",
+        "user-without-card", new Date("2026-10-29T00:00:00Z"), new Date("1899-12-30T09:00:00Z"), "PENDING",
     ]);
 });
 
@@ -78,15 +81,15 @@ test("equal-time punches choose consistent statuses regardless of input order", 
     ];
     for (const input of [records, [...records].reverse()]) {
         const sheet = await readReport(await createDailyAttendanceReport(input));
-        assert.equal(sheet.getCell("C2").value, "ACCEPTED");
-        assert.equal(sheet.getCell("C3").value, "REJECTED");
+        assert.equal(sheet.getCell("D2").value, "ACCEPTED");
+        assert.equal(sheet.getCell("D3").value, "REJECTED");
     }
 });
 
-test("an empty date range still produces a valid Excel file with three headers", async () => {
+test("an empty date range still produces a valid Excel file with four headers", async () => {
     const sheet = await readReport(await createDailyAttendanceReport([]));
     assert.equal(sheet.rowCount, 1);
-    assert.equal(sheet.autoFilter, "A1:C1");
+    assert.equal(sheet.autoFilter, "A1:D1");
 });
 
 test("report dates require a valid inclusive range and include all statuses from all users", () => {
@@ -165,28 +168,28 @@ test("download includes every user's accepted, pending and rejected punches with
     const sheet = await readReport(Buffer.from(await response.arrayBuffer()));
     assert.equal(sheet.rowCount, 67);
     assert.deepEqual(sheet.getRow(2).values.slice(1), [
-        "EMP-0", new Date("2026-10-29T00:00:00Z"), "ACCEPTED",
+        "EMP-0", new Date("2026-10-29T00:00:00Z"), new Date("1899-12-30T00:00:00Z"), "ACCEPTED",
     ]);
     assert.deepEqual(sheet.getRow(3).values.slice(1), [
-        "EMP-0", new Date("2026-10-29T23:59:59.500Z"), "PENDING",
+        "EMP-0", new Date("2026-10-29T00:00:00Z"), new Date("1899-12-30T23:59:59.500Z"), "PENDING",
     ]);
     assert.deepEqual(sheet.getRow(4).values.slice(1), [
-        "EMP-1", new Date("2026-10-29T07:00:00Z"), "REJECTED",
+        "EMP-1", new Date("2026-10-29T00:00:00Z"), new Date("1899-12-30T07:00:00Z"), "REJECTED",
     ]);
     assert.deepEqual(sheet.getRow(5).values.slice(1), [
-        "EMP-1", new Date("2026-10-29T09:00:00Z"), "ACCEPTED",
+        "EMP-1", new Date("2026-10-29T00:00:00Z"), new Date("1899-12-30T09:00:00Z"), "ACCEPTED",
     ]);
     for (const row of [62, 63]) assert.deepEqual(sheet.getRow(row).values.slice(1), [
-        "PENDING", new Date("2026-10-29T08:00:00Z"), "PENDING",
+        "PENDING", new Date("2026-10-29T00:00:00Z"), new Date("1899-12-30T08:00:00Z"), "PENDING",
     ]);
     for (const row of [64, 65]) assert.deepEqual(sheet.getRow(row).values.slice(1), [
-        "REJECTED", new Date("2026-10-29T18:00:00Z"), "REJECTED",
+        "REJECTED", new Date("2026-10-29T00:00:00Z"), new Date("1899-12-30T18:00:00Z"), "REJECTED",
     ]);
     assert.deepEqual(sheet.getRow(66).values.slice(1), [
-        "EMP-0", new Date("2026-10-30T00:00:00Z"), "ACCEPTED",
+        "EMP-0", new Date("2026-10-30T00:00:00Z"), new Date("1899-12-30T00:00:00Z"), "ACCEPTED",
     ]);
     assert.deepEqual(sheet.getRow(67).values.slice(1), [
-        "EMP-0", new Date("2026-10-30T23:59:59.999Z"), "ACCEPTED",
+        "EMP-0", new Date("2026-10-30T00:00:00Z"), new Date("1899-12-30T23:59:59.999Z"), "ACCEPTED",
     ]);
 });
 

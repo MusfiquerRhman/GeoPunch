@@ -21,13 +21,19 @@ function Position({ coords, onSelect }: MapPickerProps) {
     useEffect(() => {
         if (lat != null && lng != null) map.setView([lat, lng], map.getZoom());
     }, [lat, lng, map]);
+    useEffect(() => {
+        if (typeof ResizeObserver === "undefined") return;
+        const observer = new ResizeObserver(() => map.invalidateSize({ debounceMoveend: true }));
+        observer.observe(map.getContainer());
+        return () => observer.disconnect();
+    }, [map]);
     useMapEvents({ click: (event) => onSelect?.({ lat: event.latlng.lat, lng: event.latlng.lng }) });
     return coords ? <Marker position={coords} icon={markerIcon} /> : null;
 }
 
-export default function LocationMap(props: MapPickerProps) {
+export default function LocationMap(props: Omit<MapPickerProps, "height">) {
     return (
-        <MapContainer center={props.coords ?? [23.8103, 90.4125]} zoom={props.zoom ?? 14} style={{ height: props.height ?? 320, width: "100%" }}>
+        <MapContainer center={props.coords ?? [23.8103, 90.4125]} zoom={props.zoom ?? 14} style={{ height: "100%", width: "100%" }}>
             <TileLayer attribution={MAP_ATTRIBUTION} url={MAP_TILE_URL} maxZoom={MAP_MAX_ZOOM} />
             <Position {...props} />
         </MapContainer>

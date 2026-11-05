@@ -20,6 +20,7 @@ type PunchRecord = {
   status: number;
   submitted_at:  Date;
   address: string | null;
+  notes: string | null;
   distance: number | null;
   nearest_office_address: string | null;
   nearest_office_name: string | null;
@@ -98,7 +99,7 @@ export default function PunchCard({ record }: { record: PunchRecord }) {
           </div>
 
           <span
-            className={`shrink-0 px-3 py-1 text-xs rounded-full font-medium ${
+            className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium ${
               record.status === 2
                 ? "bg-green-100 text-green-700"
                 : record.status === 0 ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"
@@ -111,7 +112,7 @@ export default function PunchCard({ record }: { record: PunchRecord }) {
         {/* Body */}
         <div className="p-4 space-y-3 text-sm">
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wide font-mono">Client-reported address · unverified</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wide font-mono">Client-reported address</p>
             <p className="font-medium text-gray-800">{record.address?.trim() || "No address submitted"}</p>
                <span className="text-xs text-gray-500 uppercase tracking-wide font-mono">
                 (LAT:{record.latitude}, LON:{record.longitude})
@@ -129,44 +130,44 @@ export default function PunchCard({ record }: { record: PunchRecord }) {
             </div>
           </div> */}
 
-        <div className="py-3">
-          {/* Top row: Name + Distance */}
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex flex-col">
-              <span className="text-xs text-gray-500 uppercase tracking-wide">
-                Nearest Office
-              </span>
-
-              <span className="text-base font-semibold text-gray-900">
-                {record.nearest_office_name ?? "N/A"}
-              </span>
+          {record.notes && (
+            <div>
+              <p className="text-xs uppercase tracking-wide text-gray-500">Punch notes</p>
+              <p className="whitespace-pre-wrap wrap-anywhere text-gray-800">{record.notes}</p>
             </div>
-
-            <div className="text-right">
-              <span className="text-xs text-gray-500 uppercase tracking-wide">
-                Distance
-              </span>
-
-              <p className="font-mono text-sm font-medium text-gray-900">
-                {record.distance == null ? "N/A" : `${record.distance.toFixed(2)} m`}
-              </p>
-            </div>
-          </div>
-
-          {/* Bottom: Address */}
-          <div className="pt-2 border-t border-gray-100">
-            <p className="text-sm text-gray-600 leading-snug">
-              {record.nearest_office_address ?? "N/A"}
-            </p>
-          </div>
-        </div>
+          )}
 
           <div>
-            <p className="text-gray-500 uppercase tracking-wide text-xs">Submitted At</p>
-            <p className="text-gray-800 font-mono">
+            <p className="text-xs uppercase tracking-wide text-gray-500">Submitted At</p>
+            <p className="font-mono text-gray-800">
               {formatDateTime(new Date(record.submitted_at))}
             </p>
           </div>
+
+          <details className="group rounded-lg border border-gray-200">
+            <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 rounded-lg px-3 py-2 font-medium text-gray-800 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-teal-600 [&::-webkit-details-marker]:hidden">
+              Nearest Office
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="size-4 shrink-0 group-open:rotate-180">
+                <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </summary>
+            <div className="space-y-2 border-t border-gray-200 px-3 py-3">
+              <div className="flex items-start justify-between gap-4">
+                <p className="min-w-0 text-base font-semibold text-gray-900">
+                  {record.nearest_office_name ?? "N/A"}
+                </p>
+                <div className="text-right">
+                  <p className="text-xs uppercase tracking-wide text-gray-500">Distance</p>
+                  <p className="font-mono font-medium text-gray-900">
+                    {record.distance == null ? "N/A" : `${record.distance.toFixed(2)} m`}
+                  </p>
+                </div>
+              </div>
+              <p className="leading-snug text-gray-600">
+                {record.nearest_office_address ?? "N/A"}
+              </p>
+            </div>
+          </details>
 
           <div>
               {record.status === 1 && (
@@ -206,9 +207,9 @@ export default function PunchCard({ record }: { record: PunchRecord }) {
           </div>
         </div>
       </div>
-      <div className="h-56 min-w-0 border-t border-gray-200 lg:h-auto lg:min-h-64 lg:border-t-0 lg:border-l">
-          <div aria-label={`Punch location for ${record.employee.name}`}>
-              <MapPicker coords={{ lat: record.latitude, lng: record.longitude }} height={256} zoom={15} />
+      <div className="relative h-56 min-w-0 border-t border-gray-200 lg:h-auto lg:min-h-64 lg:border-t-0 lg:border-l">
+          <div className="absolute inset-0" aria-label={`Punch location for ${record.employee.name}`}>
+              <MapPicker coords={{ lat: record.latitude, lng: record.longitude }} height="100%" zoom={15} />
           </div>
       </div>
 

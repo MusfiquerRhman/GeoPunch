@@ -51,24 +51,28 @@ export async function createDailyAttendanceReport(records: DailyAttendanceRecord
   });
   sheet.columns = [
     { header: "User ID", key: "userId", width: 40 },
-    { header: "Punch Time", key: "punchTime", width: 30, style: { numFmt: '[$-en-US]dd mmm yyyy"   "h:mm:ss AM/PM' } },
+    { header: "Punch Date", key: "punchDate", width: 18, style: { numFmt: "[$-en-US]dd mmm yyyy" } },
+    { header: "Punch Time", key: "punchTime", width: 20, style: { numFmt: "[$-en-US]h:mm:ss AM/PM" } },
     { header: "Punch Status", key: "punchStatus", width: 20 },
   ];
   const rows = [...days.values()].sort((a, b) =>
     a.day.localeCompare(b.day) || a.userId.localeCompare(b.userId, "en", { numeric: true }),
   );
   for (const row of rows) {
+    const punchDate = new Date(`${row.day}T00:00:00.000Z`);
     for (const punch of [row.inPunch, row.outPunch]) {
+      // Excel stores timezone-free dates and times as fractions of a day.
+      const localTime = new Date(punch.time.getTime() + dhakaOffset);
       sheet.addRow({
         userId: row.userId,
-        // Excel stores timezone-free dates, so write Dhaka's local date and time.
-        punchTime: new Date(punch.time.getTime() + dhakaOffset),
+        punchDate,
+        punchTime: (localTime.getTime() - punchDate.getTime()) / (24 * 60 * 60 * 1000),
         punchStatus: punchStatus(punch.status),
       });
     }
   }
 
-  sheet.autoFilter = { from: "A1", to: `C${sheet.rowCount}` };
+  sheet.autoFilter = { from: "A1", to: `D${sheet.rowCount}` };
   sheet.eachRow((row, index) => {
     row.height = index === 1 ? 28 : 24;
     row.alignment = { vertical: "middle" };

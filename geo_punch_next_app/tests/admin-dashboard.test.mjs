@@ -23,7 +23,7 @@ function fixture() {
     const punch = (id, employee, time, status, office = DHAKA) => ({
         id: uuid(id), employee_id: employee ? uuid(employee) : null,
         submitted_at: time ? new Date(time) : null, status,
-        office_id: office, selfie_url: "/uploads/sample.jpg",
+        office_id: office, selfie_url: "/uploads/sample.jpg", notes: null,
     });
     const records = [
         punch(301, 1, "2026-10-31T18:00:00Z", 2), // Dhaka midnight, included.
@@ -174,17 +174,22 @@ test("filtered dashboard exports keep the first and last punch on separate rows"
     await workbook.xlsx.load(Buffer.from(await response.arrayBuffer()));
     const sheet = workbook.worksheets[0];
     assert.equal(sheet.rowCount, 3);
-    assert.deepEqual(sheet.getRow(1).values.slice(1), ["User ID", "Punch Time", "Punch Status"]);
-    for (const row of [2, 3]) assert.deepEqual(sheet.getRow(row).values.slice(1), ["001", new Date("2026-11-01T14:00:00Z"), "PENDING"]);
+    assert.deepEqual(sheet.getRow(1).values.slice(1), ["User ID", "Punch Date", "Punch Time", "Punch Status"]);
+    for (const row of [2, 3]) assert.deepEqual(sheet.getRow(row).values.slice(1), ["001", new Date("2026-11-01T00:00:00Z"), new Date("1899-12-30T14:00:00Z"), "PENDING"]);
 });
 
 test("review links respect status, date, company, office and the selected record", async () => {
     const app = fixture();
+    const notes = "Client visit\nFloor 2";
+    app.records.find((record) => record.id === uuid(302)).notes = notes;
     const query = `date=${date}&company=${A}&office=${GAZIPUR}&status=1&record=${uuid(302)}`;
     const data = await (await app.get("checkins", query)).json();
     assert.deepEqual(data.records.map((record) => record.id), [uuid(302)]);
+    assert.equal(app.calls.find((call) => call.model === "attendance").select.notes, true);
+    assert.equal(data.records[0].notes, notes);
     const rejected = await (await app.get("checkins", `date=${date}&company=${A}&status=0`)).json();
     assert.deepEqual(rejected.records.map((record) => record.id), [uuid(303)]);
+    assert.equal(rejected.records[0].notes, null);
     const outsideScope = await (await app.get("checkins", query.replace(uuid(302), uuid(305)))).json();
     assert.deepEqual(outsideScope.records, []);
     const all = await (await app.get("checkins", "status=1")).json();

@@ -15,6 +15,7 @@ interface CheckInRecord {
     submitted_at: Date; 
     status: number; 
     address: string | null;
+    notes: string | null;
     distance: number | null;
     nearest_office_address: string | null;
     nearest_office_name: string | null;
