@@ -3,6 +3,7 @@ import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HapticTab } from '@/components/haptic-tab';
+import TabScreenContainer from '@/components/tab-screen-container';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import Entypo from '@expo/vector-icons/Entypo';
@@ -14,42 +15,44 @@ export default function TabLayout() {
   const insets = useSafeAreaInsets();
 
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        tabBarInactiveTintColor: Colors[colorScheme ?? 'light'].tabIconDefault,
-        headerShown: false,
-        tabBarButton: HapticTab,
-        tabBarStyle: {
-          backgroundColor: colorScheme === 'dark' ? '#151c1a' : '#ffffff',
-          borderTopColor: colorScheme === 'dark' ? '#293531' : '#e5ece9',
-          height: 62 + insets.bottom,
-          paddingTop: 6,
-          paddingBottom: 6 + insets.bottom,
-        },
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Attendance',
-          tabBarIcon: ({ color }) => <Entypo name="location" size={22} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="history"
-        options={{
-          title: 'History',
-          tabBarIcon: ({ color }) => <AntDesign name="history" size={22} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'Profile',
-          tabBarIcon: ({ color }) => <EvilIcons name="user" size={26} color={color} />,
-        }}
-      />
-    </Tabs>
+    <TabScreenContainer>
+      <Tabs
+        screenOptions={{
+          tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+          tabBarInactiveTintColor: Colors[colorScheme ?? 'light'].tabIconDefault,
+          headerShown: false,
+          tabBarButton: HapticTab,
+          tabBarStyle: {
+            backgroundColor: colorScheme === 'dark' ? '#151c1a' : '#ffffff',
+            borderTopColor: colorScheme === 'dark' ? '#293531' : '#e5ece9',
+            height: 62 + insets.bottom,
+            paddingTop: 6,
+            paddingBottom: 6 + insets.bottom,
+          },
+          tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
+        }}>
+        <Tabs.Screen
+          name="index"
+          options={{
+            title: 'Attendance',
+            tabBarIcon: ({ color }) => <Entypo name="location" size={22} color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="history"
+          options={{
+            title: 'History',
+            tabBarIcon: ({ color }) => <AntDesign name="history" size={22} color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="profile"
+          options={{
+            title: 'Profile',
+            tabBarIcon: ({ color }) => <EvilIcons name="user" size={26} color={color} />,
+          }}
+        />
+      </Tabs>
+    </TabScreenContainer>
   );
 }

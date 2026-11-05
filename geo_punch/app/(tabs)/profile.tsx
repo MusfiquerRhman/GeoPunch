@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { Image } from "expo-image";
 import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useState } from "react";
 
 import ParallaxScrollView from "@/components/parallax-scroll-view";
+import TabHeaderImage from "@/components/tab-header-image";
 import { ThemedText } from "@/components/themed-text";
 import { apiRequest } from "@/constants/apiRequest";
 import { Colors, Fonts } from "@/constants/theme";
@@ -46,8 +46,8 @@ export default function ProfileScreen() {
 
   return (
     <ParallaxScrollView
-      headerBackgroundColor={{ light: "#dff3ef", dark: "#203b35" }}
-      headerImage={<Image source={require("@/assets/images/Banner.jpeg")} style={styles.reactLogo} />}
+      headerBackgroundColor={{ light: "#fff", dark: "#fff" }}
+      headerImage={<TabHeaderImage />}
     >
       <ThemedText type="title" style={{ fontFamily: Fonts.rounded }}>
         Your profile
@@ -96,13 +96,6 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  reactLogo: {
-    height: "83%",
-    width: "100%",
-    bottom: 0,
-    left: 0,
-    position: "absolute",
-  },
   card: {
     backgroundColor: "#fff",
     padding: 20,

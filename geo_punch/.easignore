@@ -8,6 +8,7 @@
 !/hooks
 !/scripts
 !/styles
+!/utils
 !/app.config.ts
 !/app.json
 !/eas.json

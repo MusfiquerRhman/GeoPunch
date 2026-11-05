@@ -32,13 +32,6 @@ export const homeStyles = StyleSheet.create({
     gap: 8,
     marginBottom: 8,
   },
-  reactLogo: {
-    height: '83%',
-    width: '100%',
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
   container: {
     flex: 1,
     height: 300,
@@ -182,5 +175,22 @@ export const homeStyles = StyleSheet.create({
     color: '#263632',
     fontSize: 14,
     lineHeight: 20,
+  },
+  notesInput: {
+    height: 104,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#e5ece9',
+    padding: 12,
+    backgroundColor: '#fff',
+    color: '#263632',
+    fontSize: 14,
+    lineHeight: 20,
+    textAlignVertical: 'top',
+  },
+  notesHint: {
+    color: '#66736f',
+    fontSize: 12,
+    lineHeight: 18,
   },
 });

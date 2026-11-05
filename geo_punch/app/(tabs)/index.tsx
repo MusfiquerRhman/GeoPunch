@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Alert, ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
+import { Alert, ActivityIndicator, Keyboard, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import * as Location from "expo-location";
 import { Image } from "expo-image";
@@ -10,7 +10,9 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import ParallaxScrollView from "@/components/parallax-scroll-view";
 import { ThemedText } from "@/components/themed-text";
-import { apiRequest } from "@/constants/apiRequest";
+import TodayPunchSummary from "@/components/today-punch-summary";
+import TabHeaderImage from "@/components/tab-header-image";
+import { ApiError, apiRequest } from "@/constants/apiRequest";
 import { useAuth } from "@/context/AuthContext";
 import { homeStyles } from "@/styles/home";
 
@@ -49,6 +51,7 @@ export default function HomeScreen() {
   const [address, setAddress] = useState("Finding address...");
   const [showCamera, setShowCamera] = useState(false);
   const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [attendanceSubmitted, setAttendanceSubmitted] = useState(false);
   const [nearestOffice, setNearestOffice] = useState<NearestOffice | null>(null);
@@ -194,6 +197,8 @@ export default function HomeScreen() {
 
     submissionLock.current = true;
     setIsSubmitting(true);
+    Keyboard.dismiss();
+    const hasNotes = Boolean(notes.trim());
     try {
       const currentPosition = await refreshLocation();
       if (!currentPosition) {
@@ -215,8 +220,11 @@ export default function HomeScreen() {
       if (currentAddress !== "Address unavailable") {
         formData.append("address", currentAddress);
       }
+      if (hasNotes) formData.append("notes", notes);
 
-      await apiRequest<{ success: true }>("/geo_punch/record", {
+      // Older servers silently ignore notes on the original endpoint.
+      const path = hasNotes ? "/geo_punch/record/with-notes" : "/geo_punch/record";
+      await apiRequest<{ success: true }>(path, {
         method: "POST",
         token,
         onUnauthorized: logout,
@@ -226,9 +234,16 @@ export default function HomeScreen() {
       setAttendanceSubmitted(true);
       Alert.alert("Attendance recorded", "Your attendance was submitted successfully.");
       setPhotoUri(null);
+      setNotes("");
       await queryClient.invalidateQueries({ queryKey: ["attendance"] });
     } catch (error) {
-      Alert.alert("Attendance not submitted", error instanceof Error ? error.message : "Please try again.");
+      const serverNeedsUpdate = hasNotes && error instanceof ApiError && (error.status === 404 || error.status === 405);
+      Alert.alert(
+        "Attendance not submitted",
+        serverNeedsUpdate
+          ? "This server needs an update to save punch notes. Your note is still in the form."
+          : error instanceof Error ? error.message : "Please try again.",
+      );
     } finally {
       submissionLock.current = false;
       setIsSubmitting(false);
@@ -237,10 +252,13 @@ export default function HomeScreen() {
 
   return (
     <ParallaxScrollView
-      headerBackgroundColor={{ light: "#dff3ef", dark: "#203b35" }}
-      headerImage={<Image source={require("@/assets/images/Banner.jpeg")} style={homeStyles.reactLogo} />}
+      headerBackgroundColor={{ light: "#fff", dark: "#fff" }}
+      headerImage={<TabHeaderImage />}
+      automaticallyAdjustKeyboardInsets
+      keyboardShouldPersistTaps="handled"
     >
       <ThemedText type="title">Attendance</ThemedText>
+      <TodayPunchSummary token={token} onUnauthorized={logout} />
       {attendanceSubmitted && (
         <View accessibilityLiveRegion="polite" style={homeStyles.successBanner}>
           <Ionicons name="checkmark-circle" size={26} color="#0f766e" />
@@ -302,6 +320,22 @@ export default function HomeScreen() {
             <ThemedText>{locationLoading ? "Getting your current location…" : "Location not available"}</ThemedText>
           </View>
         )}
+      </View>
+
+      <View style={homeStyles.stepContainer}>
+        <ThemedText style={homeStyles.locationLabel}>Punch notes (optional)</ThemedText>
+        <TextInput
+          accessibilityLabel="Punch notes (optional)"
+          multiline
+          maxLength={2000}
+          editable={!isSubmitting}
+          value={notes}
+          onChangeText={setNotes}
+          placeholder="Add a note for this punch"
+          placeholderTextColor="#66736f"
+          style={homeStyles.notesInput}
+        />
+        <ThemedText style={homeStyles.notesHint}>Visible to admins and in your History.</ThemedText>
       </View>
 
       <View style={homeStyles.locationDetails}>

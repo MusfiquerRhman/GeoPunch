@@ -4,8 +4,8 @@ import { WebView } from "react-native-webview";
 
 import { locationMapHtml, type LocationMapProps } from "./location-map-html";
 
-export default function LocationMap({ latitude, longitude, offices }: LocationMapProps) {
-  const source = useMemo(() => ({ html: locationMapHtml({ latitude, longitude, offices }) }), [latitude, longitude, offices]);
+export default function LocationMap({ latitude, longitude, offices, locationLabel }: LocationMapProps) {
+  const source = useMemo(() => ({ html: locationMapHtml({ latitude, longitude, offices, locationLabel }) }), [latitude, longitude, offices, locationLabel]);
   return (
     <WebView
       style={{ flex: 1 }}

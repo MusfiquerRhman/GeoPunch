@@ -16,6 +16,14 @@ The attendance screen uses Leaflet with OpenStreetMap tiles on Android, iOS, and
 
 Leaflet 1.9.4 loads from unpkg. Public OpenStreetMap tiles are best-effort and subject to the [tile usage policy](https://operations.osmfoundation.org/policies/tiles/). The map uses normal browser caching, no offline downloads or prefetching, and identifies native requests as GeoPunch/1.0. Rebuild existing native installations after updating dependencies to include react-native-webview and remove the Google Maps SDK.
 
+## Attendance history
+
+History opens in List view with 10 punch cards per page, newest first, including older months. Calendar view shows the selected month's total recorded, pending, and rejected punches above the calendar. Each calendar date has one colored dot per individual punch (green approved, amber pending, red rejected); dates without punches stay blank. Selecting a date expands its first/last times and every punch card directly below the calendar. All dates and times use Asia/Dhaka.
+
+Each punch card includes the protected selfie, date/time, saved address, coordinates, and status. View on map opens the saved punch location in a popup. Use the List and Calendar tabs to switch views, and Previous and Next to move between list pages. Each page starts at the top; the final page can contain fewer than 10 punches. Pull to refresh or use the refresh button to update review statuses; the visible screen also refreshes when returning to the app and once a minute. Legacy records without an address use the device geocoder only when location access is already granted.
+
+This History screen requires the matching `GET /api/geo_punch/history` backend route. Existing app versions continue using the unchanged latest-20 endpoint. The new route is read-only, scopes every request to the signed-in employee, and uses the existing protected photo service and map tiles. Release the updated backend before distributing a new Android build.
+
 ## Run on Android
 
 ```sh

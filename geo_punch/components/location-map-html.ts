@@ -3,6 +3,7 @@ import { BASE_URL, getApiUrl } from "../constants/API_URL";
 export type LocationMapProps = {
   latitude: number;
   longitude: number;
+  locationLabel?: string;
   offices: { id: number | string; name: string; address: string; latitude: number; longitude: number }[];
 };
 
@@ -21,6 +22,7 @@ export function locationMapHtml(props: LocationMapProps) {
 <script src="${BASE_URL}/maps/leaflet/leaflet.js"></script>
 <script>
 const data = ${data};
+document.getElementById('map').setAttribute('aria-label',data.locationLabel||'Current location and offices');
 const error = document.getElementById('error');
 function showError(){error.textContent='Map unavailable. Check your internet connection. Coordinates are shown below.';error.style.display='block';}
 if (!window.L || !data.tileUrl) { showError(); } else {
@@ -33,7 +35,9 @@ if (!window.L || !data.tileUrl) { showError(); } else {
   tiles.on('loading',function(){failed=false;});
   tiles.on('tileerror',function(){failed=true;showError();});
   tiles.on('load',function(){if(!failed)error.style.display='none';});
-  L.circleMarker([data.latitude,data.longitude],{radius:9,color:'#fff',weight:3,fillColor:'#dc2626',fillOpacity:1}).addTo(map).bindPopup('You are here');
+  const locationText=document.createElement('span');
+  locationText.textContent=data.locationLabel||'You are here';
+  L.circleMarker([data.latitude,data.longitude],{radius:9,color:'#fff',weight:3,fillColor:data.locationLabel?'#0f766e':'#dc2626',fillOpacity:1}).addTo(map).bindPopup(locationText);
   data.offices.forEach(function(office){
     if(!Number.isFinite(office.latitude)||!Number.isFinite(office.longitude))return;
     const popup=document.createElement('div');
