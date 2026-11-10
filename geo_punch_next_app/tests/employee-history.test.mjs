@@ -137,8 +137,8 @@ test("database failures return a retryable private response", async t => {
 });
 
 test("employees can reach their mobile history API without gaining web admin access", async () => {
-  const { proxy } = loadTs("proxy.ts", { "@/app/api/_utils/jwt": { verifyToken: async () => ({ id: "employee-a", isAdmin: false }) } });
+  const { proxy } = loadTs("proxy.ts", { "@/app/api/_utils/jwt": { verifyToken: async () => ({ id: "employee-a", isAdmin: false, deviceId: "test-device" }) } });
   const check = pathname => proxy({ nextUrl: { pathname }, url: "http://localhost" + pathname, headers: new Headers({ authorization: "Bearer employee-token" }), cookies: { get: () => undefined } });
   assert.equal((await check("/api/geo_punch/history")).headers.get("x-middleware-next"), "1");
-  assert.equal((await check("/api/admin/dashboard")).status, 403);
+  assert.equal((await check("/api/admin/dashboard")).status, 401);
 });

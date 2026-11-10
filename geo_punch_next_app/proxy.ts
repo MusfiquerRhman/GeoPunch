@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "@/app/api/_utils/jwt";
+import { tokenMatchesRoute } from "@/app/api/_utils/session";
 
 const publicPaths = new Set([
   "/login",
@@ -39,7 +40,7 @@ export async function proxy(req: NextRequest) {
     : req.cookies.get("token")?.value;
   const payload = token ? await verifyToken(token) : null;
 
-  if (!payload) {
+  if (!payload || !tokenMatchesRoute(payload, pathname, bearer?.startsWith("Bearer ") === true)) {
     if (pathname.startsWith("/api/")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

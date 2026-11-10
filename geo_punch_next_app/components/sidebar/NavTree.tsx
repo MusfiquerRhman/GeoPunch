@@ -6,12 +6,23 @@ import Link from 'next/link';
 import clsx from 'clsx';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 import { bookIcon, structureIcon, officeIcon, dashboardIcon, attendanceIcon, checkIcons, logIcon, rankingIcon, adminIcon, userIcon, shieldIcon, cityIcon } from '@/assets';
 
 // Recursive component to render the navigation tree
 const NavTree = () => {
     const pathname = usePathname();
     const [isLoggingOut, setIsLoggingOut] = useState(false);
+    const { data: pendingDevices } = useQuery({
+        queryKey: ["trusted-devices", "pending"],
+        queryFn: async (): Promise<{ pendingCount: number }> => {
+            const response = await fetch("/api/admin/trusted-devices?pending=1", { cache: "no-store" });
+            if (!response.ok) throw new Error("Couldn’t load pending device requests.");
+            return response.json();
+        },
+        refetchInterval: 20_000,
+    });
+    const pendingCount = pendingDevices?.pendingCount ?? 0;
 
     const navData = [
         {
@@ -80,7 +91,7 @@ const NavTree = () => {
         },
         {
             id: 'Admin',
-            label: 'Admin',
+            label: pendingCount ? `Admin (${pendingCount})` : 'Admin',
             icon: adminIcon,
             link: '/admin',
             children: [
@@ -90,12 +101,12 @@ const NavTree = () => {
                     icon: userIcon,
                     link: '/admin/users',
                 },
-                // {
-                //     id: 'admins',
-                //     label: 'Admins',
-                //     icon: shieldIcon,
-                //     link: '/admin/admins',
-                // }
+                {
+                    id: 'TrustedDevices',
+                    label: 'Trusted Devices',
+                    icon: shieldIcon,
+                    link: '/admin/trusted-devices',
+                },
             ]
         }
     ];
@@ -145,6 +156,11 @@ const NavTree = () => {
                                 height={20}
                             />
                             {child.label}
+                            {child.id === "TrustedDevices" && pendingCount > 0 && (
+                                <span aria-label={`${pendingCount} pending requests`} className="ml-auto rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900">
+                                    {pendingCount}
+                                </span>
+                            )}
                         </Link>
                     )) || []}
                 />

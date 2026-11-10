@@ -2,21 +2,28 @@ import { isAuthCookieSecure } from "../../../_utils/cookies";
 import { db } from "@/utils/prisma";
 import { signToken } from "../../../_utils/jwt";
 import { SESSION_DURATION_SECONDS } from "../../../_utils/session";
+import { deviceDetails, getDeviceCredentialHash, recordDeviceSignIn } from "../../../_utils/trustedDevices";
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 
 export async function POST(req: Request) {
-  let body: { id_card_no?: unknown; password?: unknown };
+  let body: { id_card_no?: unknown; password?: unknown; device?: unknown; resend_device_trust?: unknown };
   try {
-    body = await req.json();
+    const value = await req.json();
+    if (!value || typeof value !== "object") throw new Error("Expected an object");
+    body = value;
   } catch {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
-  const { id_card_no, password } = body;
+  const { id_card_no, password, device, resend_device_trust } = body;
   if (typeof id_card_no !== "string" || typeof password !== "string" || !id_card_no || !password) {
     return NextResponse.json({ error: "ID card number and password are required" }, { status: 400 });
   }
 
+  const deviceHash = getDeviceCredentialHash(req);
+  if (!deviceHash) {
+    return NextResponse.json({ error: "Update GeoPunch to sign in with device approval." }, { status: 426 });
+  }
 
   // TODO: validate user from DB
   const user = await db.employees.findUnique({
@@ -70,11 +77,30 @@ export async function POST(req: Request) {
     });
   }
 
+  const registeredDevice = await recordDeviceSignIn(user.id, deviceHash, deviceDetails(device), resend_device_trust === true);
+  if (!registeredDevice) {
+    return NextResponse.json({ error: "Account is inactive. Please contact admin." }, { status: 403 });
+  }
+  if (registeredDevice.status === "pending") {
+    return NextResponse.json({
+      code: "DEVICE_PENDING",
+      error: "Your device request was sent to an administrator. Check approval here before signing in.",
+    }, { status: 403 });
+  }
+  if (registeredDevice.status === "rejected") {
+    return NextResponse.json({
+      code: "DEVICE_REJECTED",
+      error: "An administrator did not approve this device. You can resend the request.",
+    }, { status: 403 });
+  }
+
   const token = await signToken({
     id: user.id,
     name: user.name,
     email: user.email,
     isAdmin: user.is_admin === true,
+    deviceId: registeredDevice.id,
+    deviceVersion: registeredDevice.version,
     id_card_no: user.id_card_no,
     phone_no: user.phone_no,
     departments: user.departments?.department_name,

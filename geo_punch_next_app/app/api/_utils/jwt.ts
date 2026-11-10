@@ -13,6 +13,8 @@ function getSecret() {
 export type AppTokenPayload = JWTPayload & {
   id: string;
   isAdmin: boolean;
+  deviceId?: string;
+  deviceVersion?: number;
 };
 
 export async function signToken(payload: AppTokenPayload) {
@@ -31,6 +33,11 @@ export async function verifyToken(token: string): Promise<AppTokenPayload | null
     });
     if (typeof payload.id !== "string" || typeof payload.isAdmin !== "boolean") {
       return null;
+    }
+    if (payload.deviceId !== undefined || payload.deviceVersion !== undefined) {
+      if (typeof payload.deviceId !== "string" || !payload.deviceId ||
+          typeof payload.deviceVersion !== "number" || !Number.isSafeInteger(payload.deviceVersion) ||
+          payload.deviceVersion < 1) return null;
     }
     return payload as AppTokenPayload;
   } catch {

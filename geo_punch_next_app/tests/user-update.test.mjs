@@ -62,6 +62,11 @@ function fixture() {
     const loginMocks = {
         "@/utils/prisma": { db },
         "../../../_utils/jwt": { signToken: async () => "test-session" },
+        "../../../_utils/trustedDevices": {
+            getDeviceCredentialHash: () => "test-key",
+            deviceDetails: () => ({}),
+            recordDeviceSignIn: async () => ({ id: "trusted-device", status: "trusted", version: 1 }),
+        },
         "../../_utils/jwt": { signToken: async () => "test-session" },
         "../../../_utils/cookies": { isAuthCookieSecure: () => false },
         "../../_utils/cookies": { isAuthCookieSecure: () => false },

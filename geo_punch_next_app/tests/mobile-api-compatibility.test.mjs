@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import path from "node:path";
+import { createHash } from "node:crypto";
 import bcrypt from "bcryptjs";
 import jsonwebtoken from "jsonwebtoken";
 import * as jose from "jose";
@@ -11,6 +12,9 @@ const employeeId = "00000000-0000-4000-8000-000000000001";
 const otherEmployeeId = "00000000-0000-4000-8000-000000000002";
 const companyId = "00000000-0000-4000-8000-000000000003";
 const officeId = "00000000-0000-4000-8000-000000000004";
+const deviceId = "00000000-0000-4000-8000-000000000005";
+const deviceKey = "c".repeat(64);
+const deviceHash = createHash("sha256").update(deviceKey).digest("hex");
 const image = Buffer.from([0xff, 0xd8, 0xff, 0x00]);
 const recordId = index => `00000000-0000-4000-8000-${String(index + 100).padStart(12, "0")}`;
 
@@ -35,7 +39,11 @@ function fixture(t) {
   const written = [];
   const selectFields = (record, select) => Object.fromEntries(Object.keys(select).map(key => [key, record[key]]));
   const db = {
-    employees: { findUnique: async ({ where }) => where.id === employeeId || where.id_card_no === "31" ? employee : null },
+    employees: { findUnique: async ({ where }) => {
+      const device = where.trusted_devices?.some;
+      if (device && (device.id !== deviceId || device.version !== 1 || device.credential_hash !== deviceHash || device.status !== "trusted")) return null;
+      return where.id === employeeId || where.id_card_no === "31" ? employee : null;
+    } },
     offices: { findMany: async ({ where }) => {
       assert.equal(where.company_id, companyId);
       return [{ name: "Head office", office_locations: [{ id: officeId, address: "Dhaka office", latitude: 23.81, longitude: 90.41 }] }];
@@ -57,6 +65,11 @@ function fixture(t) {
   const mocks = {
     jose,
     "@/utils/prisma": { db },
+    "../../../_utils/trustedDevices": {
+      getDeviceCredentialHash: (request) => request.headers.get("X-GeoPunch-Device"),
+      deviceDetails: () => ({}),
+      recordDeviceSignIn: async () => ({ id: deviceId, status: "trusted", version: 1 }),
+    },
     "../../../_utils/cookies": { isAuthCookieSecure: () => false },
     "fs/promises": {
       mkdir: async () => {},
@@ -78,11 +91,13 @@ function fixture(t) {
     ["/api/geo_punch/history", load("app/api/geo_punch/history/route.ts")],
   ]);
   const uploads = load("app/api/geo_punch/uploads/[filename]/route.ts");
-  // Previously installed clients keep using their original HS256 bearer tokens.
-  const oldToken = jsonwebtoken.sign({ id: employeeId, isAdmin: false, id_card_no: "31" }, secret, { expiresIn: "2h" });
+  const token = jsonwebtoken.sign({ id: employeeId, isAdmin: false, id_card_no: "31", deviceId, deviceVersion: 1 }, secret, { expiresIn: "2h" });
   async function request(url, options = {}, authenticated = true) {
     const headers = new Headers(options.headers);
-    if (authenticated) headers.set("Authorization", `Bearer ${oldToken}`);
+    if (authenticated) {
+      headers.set("Authorization", `Bearer ${token}`);
+      if (!headers.has("X-GeoPunch-Device")) headers.set("X-GeoPunch-Device", deviceKey);
+    }
     const req = new NextRequest("http://localhost" + url, { ...options, headers });
     const gate = await proxy(req);
     if (gate.headers.get("x-middleware-next") !== "1") return gate;
@@ -91,20 +106,25 @@ function fixture(t) {
     if (req.nextUrl.pathname.startsWith("/api/geo_punch/uploads/")) return uploads.GET(req, { params: Promise.resolve({ filename: req.nextUrl.pathname.split("/").at(-1) }) });
     return new Response(null, { status: 404 });
   }
-  return { request, oldToken, written };
+  return { request, written };
 }
 
-test("legacy mobile login keeps ID/password inputs and top-level token/user output without a version header", async t => {
+test("mobile login keeps ID/password inputs and token/user output and requires a device credential", async t => {
   const app = fixture(t);
-  const response = await app.request("/api/auth/geo_punch/login", {
+  const options = {
     method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ id_card_no: "31", password: "existing-password" }),
+  };
+  assert.equal((await app.request("/api/auth/geo_punch/login", options, false)).status, 426);
+  const response = await app.request("/api/auth/geo_punch/login", {
+    ...options, headers: { ...options.headers, "X-GeoPunch-Device": deviceKey },
   }, false);
   assert.equal(response.status, 200);
   const body = await response.json();
   assert.equal(typeof body.token, "string");
   assert.deepEqual(body.user, { id: employeeId, name: "Employee", email: "employee@example.test", isAdmin: false, id_card_no: "31", phone_no: "01000000000", departments: "Operations", designations: "Officer" });
   const claims = jsonwebtoken.verify(body.token, process.env.JWT_SECRET);
+  assert.equal(claims.deviceId, deviceId);
   assert.equal(claims.exp - claims.iat, 604800);
 });
 
@@ -213,7 +233,7 @@ test("legacy profile, office and distance endpoints keep the fields older screen
   assert.deepEqual(await distance.json(), { success: true, nearest_office: { distance: 0, office_address: "Dhaka office", office_name: "Head office", office_location_id: officeId } });
 });
 
-test("existing bearer tokens still load legacy selfies while other employees' photos stay protected", async t => {
+test("trusted devices load legacy selfies while other employees' photos stay protected", async t => {
   const app = fixture(t);
   const photo = await app.request("/api/geo_punch/uploads/legacy-selfie.jpg");
   assert.equal(photo.status, 200);
@@ -221,5 +241,8 @@ test("existing bearer tokens still load legacy selfies while other employees' ph
   assert.match(photo.headers.get("Cache-Control"), /private/);
   assert.deepEqual(Buffer.from(await photo.arrayBuffer()), image);
   assert.equal((await app.request("/api/geo_punch/uploads/another-employee.jpg")).status, 404);
+  assert.equal((await app.request("/api/geo_punch/uploads/legacy-selfie.jpg", {
+    headers: { "X-GeoPunch-Device": "b".repeat(64) },
+  })).status, 401);
   for (const endpoint of ["/api/geo_punch/record", "/api/geo_punch/users", "/api/geo_punch/get_offices", "/api/geo_punch/uploads/legacy-selfie.jpg"]) assert.equal((await app.request(endpoint, {}, false)).status, 401);
 });

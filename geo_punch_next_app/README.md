@@ -21,6 +21,8 @@ The administrator dashboard shows attendance for a selected Dhaka date, company,
 
 Before upgrading an existing installation to the version with punch notes, apply `../SQL/ADD ATTENDANCE NOTES.sql` to its PostgreSQL database. `npm run build` regenerates the Prisma client. Run `npx prisma generate` before starting an updated local dev server.
 
+Apply `../SQL/ADD TRUSTED DEVICES.sql` before deploying device approval to an existing database. Distribute the matching mobile build configured for the HTTPS backend. Employees sign in again to register their first device. Admins review later requests under **Admin → Trusted Devices**.
+
 ## Mobile API compatibility
 
 Most employees continue using older installed Android versions. Keep their existing API paths, methods, required inputs, response envelopes, and field names compatible when updating the server. Do not require an app version header or a forced app update for these endpoints:

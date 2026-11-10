@@ -8,11 +8,11 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <main lang="en" className="h-full antialiased">
       <Toaster />
-      <SideBar>
-        <Providers>
+      <Providers>
+        <SideBar>
           {children}
-        </Providers>
-      </SideBar>
+        </SideBar>
+      </Providers>
     </main>
   );
 };

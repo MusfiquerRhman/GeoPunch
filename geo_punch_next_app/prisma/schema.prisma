@@ -49,9 +49,36 @@ model employees {
   is_admin          Boolean?            @default(false)
   company_id        String?             @db.Uuid
   attendance_record attendance_record[]
+  trusted_devices   trusted_devices[]
   departments       departments?        @relation(fields: [department_id], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "employee_table_department_id_fkey")
   designations      designations?       @relation(fields: [designation_id], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "employee_table_designation_id_fkey")
   company           company?            @relation(fields: [company_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
+}
+
+enum device_trust_status {
+  pending
+  trusted
+  rejected
+}
+
+model trusted_devices {
+  id              String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  employee_id     String              @db.Uuid
+  credential_hash String              @db.Char(64)
+  name            String              @db.VarChar(120)
+  model           String?             @db.VarChar(120)
+  platform        String?             @db.VarChar(20)
+  os_version      String?             @db.VarChar(60)
+  status          device_trust_status @default(pending)
+  version         Int                 @default(1)
+  requested_at    DateTime            @default(now()) @db.Timestamptz(6)
+  reviewed_at     DateTime?           @db.Timestamptz(6)
+  reviewed_by     String?             @db.Uuid
+  last_sign_in_at DateTime?           @db.Timestamptz(6)
+  employee        employees           @relation(fields: [employee_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([employee_id, credential_hash])
+  @@index([status, requested_at(sort: Desc)])
 }
 
 model company {

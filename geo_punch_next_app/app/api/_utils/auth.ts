@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { db } from "@/utils/prisma";
 import { verifyToken } from "./jwt";
+import { tokenMatchesRoute } from "./session";
+import { getDeviceCredentialHash } from "./trustedDevices";
 
 export type AuthenticatedEmployee = {
   id: string;
@@ -32,14 +34,33 @@ export async function getUserFromRequest(req: Request): Promise<AuthenticatedEmp
   if (!token) return null;
 
   const payload = await verifyToken(token);
-  if (!payload) return null;
+  const pathname = new URL(req.url).pathname;
+  if (!payload || !tokenMatchesRoute(payload, pathname, req.headers.get("authorization")?.startsWith("Bearer ") === true)) {
+    return null;
+  }
+
+  const deviceHash = payload.deviceId ? getDeviceCredentialHash(req) : null;
+  if (payload.deviceId && !deviceHash) return null;
 
   const employee = await db.employees.findUnique({
-    where: { id: payload.id },
+    where: {
+      id: payload.id,
+      ...(deviceHash && {
+        trusted_devices: {
+          some: {
+            id: payload.deviceId,
+            status: "trusted",
+            version: payload.deviceVersion,
+            credential_hash: deviceHash,
+          },
+        },
+      }),
+    },
     select: { id: true, is_active: true, is_admin: true, company_id: true },
   });
 
   if (!employee?.is_active) return null;
+  if (!payload.deviceId && pathname.startsWith("/api/geo_punch/") && !employee.is_admin) return null;
   return {
     id: employee.id,
     is_admin: employee.is_admin === true,

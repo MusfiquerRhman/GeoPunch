@@ -11,6 +11,7 @@ const { createAuthSession } = loadTs("../geo_punch/context/authSession.ts");
 const { apiRequest, ApiError } = loadTs("../geo_punch/constants/apiRequest.ts", {
     "./API_URL": { getApiUrl: (path) => "http://localhost/api" + path },
     "expo/fetch": { fetch: (...args) => globalThis.fetch(...args) },
+    "../utils/deviceIdentity": { DEVICE_HEADER: "X-GeoPunch-Device", getDeviceCredential: async () => "a".repeat(64) },
 });
 const claims = { id: "employee-1", isAdmin: true };
 
@@ -23,7 +24,7 @@ function configure(t) {
     });
 }
 
-function authFixture(stored = null, overrides = {}) {
+function authFixture(stored = null, overrides = {}, validateSavedToken) {
     let saved = stored;
     let state = { token: null, loading: true, revision: 0 };
     let cacheClears = 0;
@@ -36,6 +37,7 @@ function authFixture(stored = null, overrides = {}) {
         },
         onChange: (next) => { state = next; },
         clearCache: () => { cacheClears++; },
+        validateSavedToken,
     });
     return { auth, state: () => state, saved: () => saved, cacheClears: () => cacheClears };
 }
@@ -51,6 +53,11 @@ function serverFixture() {
             findUnique: async ({ where }) => where.id_card_no === employee.id_card_no ? employee : null,
         } } },
         "../../../_utils/jwt": jwt,
+        "../../../_utils/trustedDevices": {
+            getDeviceCredentialHash: (request) => request.headers.get("X-GeoPunch-Device"),
+            deviceDetails: () => ({}),
+            recordDeviceSignIn: async () => ({ id: "trusted-device", status: "trusted", version: 1 }),
+        },
         "../../_utils/jwt": jwt,
         "../../../_utils/cookies": { isAuthCookieSecure: () => false },
         "../../_utils/cookies": { isAuthCookieSecure: () => false },
@@ -71,7 +78,7 @@ function serverFixture() {
 }
 
 const loginOptions = (password = "correct-password") => ({
-    method: "POST", headers: { "Content-Type": "application/json" },
+    method: "POST", device: true, headers: { "Content-Type": "application/json", "X-GeoPunch-Device": "a".repeat(64) },
     body: JSON.stringify({ id_card_no: "31", password }),
 });
 
@@ -186,6 +193,26 @@ test("restoring expired or malformed saved tokens clears them and allows a fresh
         await assert.rejects(app.auth.login(invalid), /valid sign-in token/);
         assert.equal(app.state().token, valid);
     }
+});
+
+test("remembered and biometric sessions require server approval before publishing a token", async (t) => {
+    configure(t);
+    const valid = await jwt.signToken(claims);
+    const denied = authFixture(valid, {}, async () => false);
+    await denied.auth.restore();
+    assert.equal(denied.state().token, null);
+    assert.equal(denied.saved(), null);
+    const biometric = authFixture(valid, {}, async () => false);
+    assert.equal(await biometric.auth.unlock(), false);
+    assert.equal(biometric.state().token, null);
+    const offline = authFixture(valid, {}, async () => { throw new Error("Offline"); });
+    await offline.auth.restore();
+    assert.equal(offline.state().token, null);
+    assert.equal(offline.state().loading, false);
+    assert.equal(offline.saved(), valid);
+    const trusted = authFixture(valid, {}, async () => true);
+    assert.equal(await trusted.auth.unlock(), true);
+    assert.equal(trusted.state().token, valid);
 });
 
 test("slow old logout cannot delete a new login from secure storage", async (t) => {
