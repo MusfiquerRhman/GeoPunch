@@ -10,7 +10,7 @@ Session fixes require an updated Android build. Deploy the matching Next.js back
 
 Copy `.env.example` to `.env` and set `EXPO_PUBLIC_API_URL` to the origin of the Next.js server (without `/api`). For an Android emulator, `http://10.0.2.2:3000` reaches a Next.js server running on the development computer. A physical Android device needs the computer's reachable LAN address or a deployed HTTPS URL.
 
-For a local HTTP server, set `EXPO_PUBLIC_ALLOW_CLEARTEXT_HTTP=true`. The Android config only permits cleartext traffic for non-production profiles and only when the API URL is HTTP. Production EAS builds require an HTTPS API URL.
+For a local HTTP server, set `EXPO_PUBLIC_ALLOW_CLEARTEXT_HTTP=true` in a development build. Preview and production EAS builds require an HTTPS API URL.
 
 The attendance screen uses Leaflet with OpenStreetMap tiles on Android, iOS, and web. No map API key is required. Current-location and office markers remain available, with visible OpenStreetMap attribution. Maps need internet access; GPS attendance and the coordinate display continue to work if the map cannot load. Address lookup uses the device geocoder through Expo Location, which requires no API key.
 
@@ -33,4 +33,4 @@ npx expo start
 
 Use a development build or Android emulator. Camera and foreground location permission prompts appear only when the employee opens the attendance flow. No background location or photo-library permission is needed.
 
-For EAS production builds, configure `EXPO_PUBLIC_API_URL` as an HTTPS URL in the EAS production environment before running `eas build --platform android --profile production`.
+Configure `EXPO_PUBLIC_API_URL` with the HTTPS backend URL in the EAS environment used by the preview or production profile. Make the same variable available locally when starting an EAS build so Expo can evaluate the app configuration.

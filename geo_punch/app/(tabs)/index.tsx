@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Alert, ActivityIndicator, Keyboard, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { CameraView, useCameraPermissions } from "expo-camera";
+import { Alert, ActivityIndicator, Keyboard, Platform, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { useCameraPermissions } from "expo-camera";
 import * as Location from "expo-location";
 import { Image } from "expo-image";
 import { File } from "expo-file-system";
+import { setStatusBarStyle } from "expo-status-bar";
 import LocationMap from "@/components/location-map";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import ParallaxScrollView from "@/components/parallax-scroll-view";
+import SelfieCamera from "@/components/selfie-camera";
 import { ThemedText } from "@/components/themed-text";
 import TodayPunchSummary from "@/components/today-punch-summary";
 import TabHeaderImage from "@/components/tab-header-image";
@@ -43,7 +45,7 @@ function formatAddress(addresses: Location.LocationGeocodedAddress[]) {
 export default function HomeScreen() {
   const queryClient = useQueryClient();
   const { token, logout } = useAuth();
-  const cameraRef = useRef<CameraView>(null);
+  const cameraOpening = useRef(false);
   const submissionLock = useRef(false);
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
@@ -156,31 +158,24 @@ export default function HomeScreen() {
   }, [location, logout, token]);
 
   const openCamera = async () => {
-    if (!cameraPermission?.granted) {
-      const permission = await requestCameraPermission();
-      if (!permission.granted) {
-        Alert.alert("Camera permission required", "Allow camera access to take an attendance selfie.");
-        return;
-      }
-    }
-    setShowCamera(true);
-  };
-
-  const takeSelfie = async () => {
+    if (cameraOpening.current || submissionLock.current) return;
+    cameraOpening.current = true;
+    Keyboard.dismiss();
     try {
-      const photo = await cameraRef.current?.takePictureAsync({
-        quality: 0.75,
-        // Convert emulator PNG captures to JPEG before uploading as image/jpeg.
-        skipProcessing: false,
-        imageType: "jpg",
-      });
-      if (!photo?.uri) throw new Error("The camera did not return a photo.");
-
-      setPhotoUri(photo.uri);
-      setAttendanceSubmitted(false);
-      setShowCamera(false);
-    } catch (error) {
-      Alert.alert("Could not take selfie", error instanceof Error ? error.message : "Please try again.");
+      if (!cameraPermission?.granted) {
+        const permission = await requestCameraPermission();
+        if (!permission.granted) {
+          Alert.alert("Camera permission required", "Allow camera access to take an attendance selfie.");
+          return;
+        }
+      }
+      // Android's modal copies the activity's status-bar style when it opens.
+      if (Platform.OS === "android") setStatusBarStyle("light");
+      setShowCamera(true);
+    } catch {
+      Alert.alert("Could not open camera", "Check your camera permissions and try again.");
+    } finally {
+      cameraOpening.current = false;
     }
   };
 
@@ -250,7 +245,7 @@ export default function HomeScreen() {
     }
   };
 
-  return (
+  const attendanceForm = (
     <ParallaxScrollView
       headerBackgroundColor={{ light: "#fff", dark: "#fff" }}
       headerImage={<TabHeaderImage />}
@@ -278,10 +273,9 @@ export default function HomeScreen() {
         <View style={{ marginTop: 4, alignItems: "center", borderRadius: 18, borderWidth: 1, borderColor: "#e5ece9", padding: 12, backgroundColor: "#fff" }}>
           <Image source={{ uri: photoUri }} style={{ width: "100%", height: 280, borderRadius: 14, backgroundColor: "#f1f5f4" }} contentFit="cover" />
           <TouchableOpacity
-            onPress={() => {
-              setPhotoUri(null);
-              void openCamera();
-            }}
+            accessibilityRole="button"
+            disabled={isSubmitting}
+            onPress={() => void openCamera()}
             style={buttonStyle}
           >
             <ThemedText style={buttonTextStyle}>Retake selfie</ThemedText>
@@ -289,23 +283,14 @@ export default function HomeScreen() {
         </View>
       )}
 
-      {showCamera && (
-        <View style={{ height: 400, marginTop: 12, overflow: "hidden", borderRadius: 12 }}>
-          <CameraView ref={cameraRef} style={{ flex: 1 }} facing="front">
-            <View style={cameraControlsStyle}>
-              <TouchableOpacity accessibilityLabel="Close camera" style={cameraButtonStyle} onPress={() => setShowCamera(false)}>
-                <Ionicons name="close" size={22} color="#000" />
-              </TouchableOpacity>
-              <TouchableOpacity accessibilityLabel="Take selfie" style={cameraButtonStyle} onPress={() => void takeSelfie()}>
-                <Ionicons name="camera" size={22} color="#000" />
-              </TouchableOpacity>
-            </View>
-          </CameraView>
-        </View>
-      )}
-
       {!showCamera && !photoUri && (
-        <TouchableOpacity accessibilityRole="button" onPress={() => void openCamera()} style={buttonStyle}>
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel="Take selfie"
+          disabled={isSubmitting}
+          onPress={() => void openCamera()}
+          style={buttonStyle}
+        >
           <Ionicons name="camera-outline" size={19} color="#fff" />
           <ThemedText style={buttonTextStyle}>Take selfie</ThemedText>
         </TouchableOpacity>
@@ -413,6 +398,22 @@ export default function HomeScreen() {
       </TouchableOpacity>
     </ParallaxScrollView>
   );
+
+  return (
+    <>
+      {attendanceForm}
+      {showCamera && (
+        <SelfieCamera
+          onClose={() => setShowCamera(false)}
+          onUsePhoto={(uri) => {
+            setPhotoUri(uri);
+            setAttendanceSubmitted(false);
+            setShowCamera(false);
+          }}
+        />
+      )}
+    </>
+  );
 }
 
 const buttonStyle = {
@@ -457,21 +458,4 @@ const noticeStyle = {
   borderWidth: 1,
   borderColor: "#e5ece9",
   backgroundColor: "#fff",
-};
-const cameraControlsStyle = {
-  position: "absolute" as const,
-  bottom: 20,
-  left: 0,
-  right: 0,
-  flexDirection: "row" as const,
-  justifyContent: "center" as const,
-  gap: 24,
-};
-const cameraButtonStyle = {
-  width: 52,
-  height: 52,
-  borderRadius: 26,
-  backgroundColor: "#fff",
-  alignItems: "center" as const,
-  justifyContent: "center" as const,
 };

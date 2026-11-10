@@ -1,4 +1,4 @@
-import { Redirect, Stack, useSegments } from "expo-router";
+import { Stack } from "expo-router";
 import { DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import { Colors } from "@/constants/theme";
@@ -14,7 +14,6 @@ const appTheme = {
 
 function RootLayoutNav() {
   const { token, loading } = useAuth();
-  const segments = useSegments();
 
   if (loading) {
     return (
@@ -24,17 +23,17 @@ function RootLayoutNav() {
     );
   }
 
-
-
-  const inAuthGroup = segments[0] === "(auth)";
-  const inTabsGroup = segments[0] === "(tabs)";
-
-  if (token && !inTabsGroup) return <Redirect href="/(tabs)" />;
-  if (!token && !inAuthGroup) return <Redirect href="/(auth)/login" />;
-
   return (
     <ThemeProvider value={appTheme}>
-      <Stack screenOptions={{ headerShown: false }} />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Protected guard={token === null}>
+          <Stack.Screen name="(auth)/login" />
+        </Stack.Protected>
+        <Stack.Protected guard={token !== null}>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="modal" />
+        </Stack.Protected>
+      </Stack>
     </ThemeProvider>
   );
 }

@@ -12,10 +12,6 @@
       "distribution": "internal",
       "autoIncrement": true,
       "credentialsSource": "remote",
-      "env": {
-        "EXPO_PUBLIC_API_URL": "http://200.234.33.89:10000",
-        "EXPO_PUBLIC_ALLOW_CLEARTEXT_HTTP": "true"
-      },
       "android": {
         "buildType": "apk"
       }

@@ -4,6 +4,7 @@ import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { usePunchAddress } from "@/hooks/use-punch-address";
 import { coordinateLabel, punchDateTime, punchStatus, validCoordinates, type AttendanceRecord } from "@/utils/attendanceHistory";
+import { selfieAuthHeaders } from "@/utils/deviceIdentity";
 
 export function PunchStatusBadge({ value }: { value: number | null }) {
   const status = punchStatus(value);
@@ -35,7 +36,7 @@ export default function AttendanceCard({ item, baseUrl, token, onViewMap }: Prop
         </View>
       ) : (
         <Image
-          source={{ uri: `${baseUrl}${item.selfie_url}`, headers: token ? { Authorization: `Bearer ${token}` } : undefined }}
+          source={{ uri: `${baseUrl}${item.selfie_url}`, headers: selfieAuthHeaders(token) }}
           style={styles.image}
           accessibilityLabel={`Attendance selfie, ${punchDateTime(item.submitted_at)}`}
           onError={() => setImageFailed(true)}

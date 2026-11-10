@@ -6,6 +6,8 @@
 !/constants
 !/context
 !/hooks
+!/modules
+/modules/*/android/build/
 !/scripts
 !/styles
 !/utils

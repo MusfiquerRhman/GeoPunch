@@ -1,11 +1,11 @@
 import type { ConfigContext, ExpoConfig } from "expo/config";
 import { AndroidConfig, withAndroidManifest } from "expo/config-plugins";
 
-const isProductionBuild = process.env.EAS_BUILD_PROFILE === "production";
+const isReleaseBuild = ["preview", "production"].includes(process.env.EAS_BUILD_PROFILE ?? "");
 const apiUrl = process.env.EXPO_PUBLIC_API_URL?.trim();
 
-if (isProductionBuild && (!apiUrl || !apiUrl.startsWith("https://"))) {
-  throw new Error("Production Android builds require EXPO_PUBLIC_API_URL to use HTTPS.");
+if (isReleaseBuild && (!apiUrl || !apiUrl.startsWith("https://"))) {
+  throw new Error("Preview and production builds require an HTTPS EXPO_PUBLIC_API_URL for device approval.");
 }
 
 function withAndroidAppSettings(config: ExpoConfig, allowDevelopmentHttp: boolean) {
@@ -20,7 +20,7 @@ function withAndroidAppSettings(config: ExpoConfig, allowDevelopmentHttp: boolea
 export default ({ config }: ConfigContext): ExpoConfig => {
   const completeConfig = config as ExpoConfig;
   const allowDevelopmentHttp =
-    process.env.EAS_BUILD_PROFILE !== "production" &&
+    !isReleaseBuild &&
     process.env.EXPO_PUBLIC_ALLOW_CLEARTEXT_HTTP === "true" &&
     apiUrl?.startsWith("http://") === true;
 
